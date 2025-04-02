@@ -1,0 +1,83 @@
+{% extends "legacy/1_LegacyBase.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+	<!-- Account Information -->
+	<div class="settings-header">
+		<p>Account information</p>
+	</div>
+	<div class="settings-panel">
+		<p>Logged in as: {{ username }}</p>
+		<p>
+			{% if 'user' in session %}
+				<a href="{{ url_for('logout') }}" class="settings-page-button">Logout</a>
+			{% endif %}
+		</p>
+	</div>
+	
+	<!-- Settings -->
+	<div class="settings-header">
+		<p>Settings</p>
+	</div>
+	<div class="settings-panel">
+		<form method="POST" action="{{ url_for('legacy_settings') }}">
+			<div class="balls"> <!-- Good job reviewing code! -->
+				<label for="access_type">Access Type:</label>
+				<select name="access_type" id="access_type">
+					<option value="legacy" {% if current_access == "legacy" %}selected{% endif %}>Legacy</option>
+					<option value="modern" {% if current_access == "modern" %}selected{% endif %}>Modern</option>
+				</select>
+			</div>
+			<div class="balls">
+				<label for="theme_mode">Theme:</label>
+				<select name="theme_mode" id="theme_mode">
+					<option value="light" {% if current_theme == "light" %}selected{% endif %}>Light Mode</option>
+					<option value="dark" {% if current_theme == "dark" %}selected{% endif %}>Dark Mode</option>
+				</select>
+			</div>
+			<div class="balls">
+				<button type="submit" class="settings-page-apply-button">Apply</button>
+			</div>
+		</form>
+
+		{% if accessmessage %}
+			<p>{{ accessmessage }}</p>
+		{% endif %}
+	</div>
+	
+	<!-- Channels -->
+	<div class="settings-header">
+		<p>Channels</p>
+		<a href="/ChannelManagement" class="settings-page-button">Manage Channels</a>
+	</div>
+	<div class="settings-panel">
+		<p>Total Channels: {{ total_Channels }}</p>
+	</div>
+	
+	<!-- History -->
+	<div class="settings-header">
+		<p>History</p>
+		<a href="/history" class="settings-page-button">View All</a>
+	</div>
+	<div class="video-grid">
+		{% for video in recent_history %}
+			{% if loop.index % 3 == 1 %}
+				<div class="video-row clearfix">
+			{% endif %}
+					<a href="/{{ video.uploader_id }}/{{ video.video_id }}">
+						<div class="video-preview">
+							<img class="video-thumbnail" src="/static/channels/{{ video.uploader_id }}/thumbnails/{{ video.video_id }}.jpg" alt="{{ video.title }}">
+							<p>{{ video.duration }}</p>
+							<div class="video-title">{{ video.title }}</div>
+							<div class="video-meta">
+								<span>Watch At: {{ video.watched_at }}</span>
+							</div>
+						</div>
+					</a>
+			{% if loop.index % 3 == 0 or loop.last %}
+				</div>
+			{% endif %}
+		{% endfor %}
+	</div>
+{% endblock %}

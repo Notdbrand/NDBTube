@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=768, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+		<title>{% block title %}NDBTube{% endblock %}</title>
+		<link rel="stylesheet" href="/static/css/{{ theme_css }}">
+	</head>
+	<script>
+		(function() {
+			var deviceWidth = window.screen.width;
+			if (deviceWidth < 768) {
+				var scale = deviceWidth / 768;
+				var viewportMeta = document.querySelector('meta[name="viewport"]');
+				viewportMeta.setAttribute('content',
+					'width=768, initial-scale=' + scale + 
+					', maximum-scale=' + scale + 
+					', minimum-scale=' + scale + 
+					', user-scalable=no'
+				);
+			}
+		})();
+	</script>
+	<body>
+		<div class="container">
+			<header>
+				<h1><a href="/">NDBTube</a></h1>
+				<form action="/legacy/search" method="get" class="search-bar">
+					<input type="text" name="q" placeholder="Search videos..." required>
+					<button type="submit">Search</button>
+				</form>
+				<button class="channels-button" onclick="window.location.href='/settings'">Settings</button>
+				<button class="channels-button" onclick="window.location.href='/channels'">Channels</button>
+			</header>
+			<!-- Channel Info Section -->
+			<div class="channel-page-info">
+				<img class="channel-page-banner" src="/static/channels/{{ channel_info.uploader_id }}/banner.png" alt="Channel Banner">
+				<div class="channel-page-content clearfix">
+					<img class="channel-page-icon" src="/static/channels/{{ channel_info.uploader_id }}/channel.png" alt="Channel Icon">
+					<div class="channel-page-details">
+						<h2>{{ channel_info.uploader }}</h2>
+						<p>{{ channel_info.uploader_id }} &bull; {{ channel_info.subscriber_count[1] }} Subscribers &bull; {{ channel_info.video_count }} videos</p>
+					</div>
+				</div>
+			</div>
+			{% block content %}
+			{% endblock %}
+		</div>
+	</body>
+</html>

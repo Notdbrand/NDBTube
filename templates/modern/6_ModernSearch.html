@@ -1,0 +1,27 @@
+{% extends "modern/1_ModernBase.html" %}
+
+{% block title %}Search{% endblock %}
+
+{% block content %}
+	<h1>Search Results for "{{ query }}"</h1>
+    <div class="video-preview-container">
+	{% for video in videos %}
+		<div class="video-preview">
+			<a href="/{{ video.uploader_id }}/{{ video.video_id }}">
+				<div class="video-preview-top">
+					<img class="video-preview-thumbnail" src="{{ video.thumbnail_location }}">
+					<span class="video-preview-duration">{{ video.duration }}</span>
+				</div>
+			</a>
+			<div class="video-preview-bottom">
+				<a href="/{{ video.uploader_id }}"><img class="video-preview-channel-icon" src="static/channels/{{ video.uploader_id }}/channel.png"></a>
+				<div class="video-preview-info">
+					<a href="/{{ video.uploader_id }}/{{ video.video_id }}" class="video-preview-title">{{ video.title }}</a>
+					<a href="/{{ video.uploader_id }}" class="video-preview-channel">{{ video.uploader }}</a>
+					<a href="/{{ video.uploader_id }}/{{ video.video_id }}" class="video-preview-sub-info">{{ video.views[1] }} views • {{ video.uploaddate }}</a>
+				</div>
+			</div>
+		</div>
+	{% endfor %}
+</div>
+{% endblock %}

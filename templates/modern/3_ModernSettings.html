@@ -1,0 +1,59 @@
+{% extends "modern/1_ModernBase.html" %}
+
+{% block title %}NDBTube - Settings{% endblock %}
+
+{% block content %}
+    <!-- Account Information -->
+	<div class="settings-header">
+		<p>Account information</p>
+	</div>
+	<div class="settings-panel">
+		<p>Logged in as: {{ username }}</p>
+		<p>
+			{% if 'user' in session %}
+				<a href="{{ url_for('logout') }}" class="settings-page-button">Logout</a>
+			{% endif %}
+		</p>
+	</div>
+	
+	<!-- Settings -->
+	<div class="settings-header">
+		<p>Settings</p>
+	</div>
+	<div class="settings-panel">
+		<form method="POST" action="{{ url_for('modern_settings') }}">
+			<div class="balls"> <!-- Good job reviewing code! -->
+				<label for="access_type">Access Type:</label>
+				<select name="access_type" id="access_type">
+					<option value="legacy" {% if current_access == "legacy" %}selected{% endif %}>Legacy</option>
+					<option value="modern" {% if current_access == "modern" %}selected{% endif %}>Modern</option>
+				</select>
+			</div>
+			<div class="balls">
+				<label for="modern_theme">Theme:</label>
+				<select name="modern_theme" id="modern_theme">
+					<option value="light" {% if current_theme == "light" %}selected{% endif %}>Light Theme</option>
+					<option value="dark" {% if current_theme == "dark" %}selected{% endif %}>Dark Theme</option>
+					<option value="custom" {% if current_theme == "custom" %}selected{% endif %}>User Theme</option>
+				</select>
+			</div>
+			<div class="balls">
+				<button type="submit" class="settings-page-apply-button">Apply</button>
+			</div>
+			<div class="settings-message">
+				{% if accessmessage %}
+					<p>{{ accessmessage }}</p>
+				{% endif %}
+			</div>
+		</form>
+	</div>
+	
+	<!-- Channels -->
+	<div class="settings-header">
+		<p>Channels</p>
+		<a href="/ChannelManagement" class="settings-page-button">Manage Channels</a>
+	</div>
+	<div class="settings-panel">
+		<p>Total Channels: {{ total_Channels }}</p>
+	</div>
+{% endblock %}

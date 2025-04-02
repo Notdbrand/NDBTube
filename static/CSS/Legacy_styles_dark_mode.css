@@ -1,0 +1,631 @@
+/* I might change this to use the same method as the modern type */
+body {
+	font-family: Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+	background-color: #121212;
+	color: #e0e0e0;
+}
+
+.container {
+	width: 768px;
+	margin: 0 auto;
+}
+
+header {
+	height: 30px;
+	background-color: #0C0C0C;
+	color: #ffffff;
+	padding: 5px;
+	overflow: hidden;
+}
+
+header h1 {
+	margin-top: -4px;
+	float: left;
+}
+
+header h1 a {
+	color: #ffffff;
+	text-decoration: none;
+}
+
+.search-bar {
+	float: left;
+	margin-left: 100px;
+	display: block;
+}
+
+.search-bar input {
+	padding: 5px;
+	width: 200px;
+	border: none;
+	border-radius: 5px;
+	background-color: #151515;
+	color: #e0e0e0;
+}
+
+.search-bar button {
+	padding: 5px 10px;
+	margin-left: 5px;
+	background-color: #333;
+	color: #ffffff;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.search-bar button:hover {
+	background-color: #444;
+}
+
+.channels-button {
+	float: right;
+	padding: 5px 15px;
+	margin-left: 10px;
+	background-color: #333;
+	color: #ffffff;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.channels-button:hover {
+	background-color: #444;
+}
+
+/* Base Video Grid Layout */
+.video-grid {
+	display: block;
+	margin-top: 20px;
+}
+
+.video-row {
+	display: block;
+	margin-bottom: 20px;
+}
+
+.video-preview {
+	width: 200px;
+	margin-right: 16px;
+	margin-left: 16px;
+	float: left;
+	background-color: #1e1e1e;
+	border: 1px solid #333;
+	padding: 10px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+	position: relative;
+}
+
+.video-preview p {
+	width: auto;
+	right: 15px;
+	position: absolute;
+	margin-left: 155px;
+	margin-top: -27px;
+	display: inline-block;
+	font-size: 10px;
+	padding: 3px;
+	background-color: rgba(0, 0, 0, 0.7);
+	color: #ffffff;
+	border-radius: 5px;
+	text-align: right;
+}
+
+.video-thumbnail {
+	width: 100%;
+	height: 120px;
+	background-color: #444;
+	border: 1px solid #333;
+	background-size: cover;
+	background-position: center;
+}
+
+.video-title {
+	font-size: 14px;
+	font-weight: bold;
+	color: #e0e0e0;
+	margin-top: 8px;
+	line-height: 1.3;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.video-meta {
+	font-size: 12px;
+	color: #aaa;
+	margin-top: 5px;
+}
+
+.video-thumbnail:hover {
+	border-color: #555;
+}
+
+.clearfix::after {
+	content: "";
+	clear: both;
+	display: table;
+}
+
+/* Channel List */
+.channel-list-box {
+	width: 750px;
+	margin: 20px auto;
+	border: 1px solid #333;
+	padding: 10px;
+	background-color: #1e1e1e;
+	display: block;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+.channel-list-icon {
+	width: 70px;
+	height: 70px;
+	border-radius: 50%;
+	float: left;
+	margin-left: 15px;
+	margin-right: 20px;
+}
+
+.channel-list-info {
+	margin-left: 15px;
+	display: inline-block;
+	overflow: hidden;
+}
+
+.channel-list-info h3 {
+	font-size: 18px;
+	margin: 0;
+}
+
+.channel-list-info p {
+	font-size: 14px;
+	color: #aaa;
+	margin: 5px 0;
+}
+
+.channel-list-view-button {
+	float: right;
+	display: inline-block;
+	padding: 10px 16px;
+	margin-top: 15px;
+	margin-right: 15px;
+	background-color: #333;
+	color: #ffffff;
+	text-decoration: none;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.channel-list-view-button:hover {
+	background-color: #444;
+}
+
+.channel-list-sort {
+	margin-top: 10px;
+	background-color: #1e1e1e;
+	padding: 4px;
+	text-align: left;
+	border: 1px solid #333;	
+}
+
+/* Search */
+/* Nothing yet */
+
+/* Settings Page */
+.settings-panel {
+	width: 748px;
+	background-color: #1e1e1e;
+	margin-top: 10px;
+	margin-bottom: 20px;
+	padding: 10px;
+}
+
+.settings-panel p {
+	display: inline;
+}
+
+.settings-header {
+	margin-top: 10px;
+	background-color: #2c2c2c;
+	padding: 4px;
+	text-align: left;
+	border: 1px solid #444;
+}
+
+.settings-header p {
+	display: inline;
+	margin: 0;
+	color: #e0e0e0;
+}
+
+.settings-page-button {
+	float: right;
+	display: inline-block;
+	padding: 2px 8px;
+	background-color: #2c2c2c;
+	border: 1px solid #444;
+	color: #e0e0e0;
+	text-decoration: none;
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+.settings-page-apply-button {
+	display: inline-block;
+	padding: 2px 8px;
+	background-color: #2c2c2c;
+	border: 1px solid #444;
+	color: #e0e0e0;
+	text-decoration: none;
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+.balls {
+	padding: 10px;
+	padding-left: 4px;
+}
+
+select {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 1px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+select:hover {
+    background-color: #444;
+}
+
+select option {
+    background-color: #333;
+    color: #fff;
+}
+
+/* 
+
+Video list header 
+
+*/
+
+.video-list-header {
+	margin-top: 10px;
+	background-color: #1e1e1e;
+	padding: 4px;
+	text-align: left;
+	border: 1px solid #333;
+}
+
+.video-list-header p {
+	margin: 0;
+	color: #e0e0e0;
+}
+
+/* Video Page */
+.video-player-container {
+	background-color: #1e1e1e;
+	padding: 10px;
+	width: 748px;
+}
+
+.video-player-container video {
+	background-color: #000;
+	width: 748px;
+	height: 421px;
+}
+
+.video-player-container h1 {
+	font-size: 18px;
+	margin: 10px 0;
+}
+
+.video-player-container p {
+	margin: 5px 0;
+	margin-bottom: 10px;
+}
+
+.video-player-channel-icon {
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	float: left;
+	margin-left: 5px;
+	margin-right: 10px;
+}
+
+.video-player-channel-info {
+	display: inline-block;
+	overflow: hidden;
+}
+
+.video-player-channel-info p {
+	font-size: 14px;
+	color: #aaa;
+	margin-top: 7px;
+	margin-bottom: 0;
+}
+
+.video-player-channel-button {
+	float: right;
+	display: inline-block;
+	padding: 6px 8px;
+	background-color: #333;
+	color: #ffffff;
+	text-decoration: none;
+	border-radius: 4px;
+	font-size: 12px;
+	margin-right: 5px;
+}
+
+.video-player-channel-button:hover {
+	background-color: #444;
+}
+
+.video-player-description {
+	border-top: 1px solid #333;
+	background-color: #1e1e1e;
+	padding: 0 10px 10px;
+	width: 748px;
+	word-wrap: break-word;
+}
+
+.video-player-description h2 {
+	font-size: 16px;
+	margin-bottom: 10px;
+}
+
+.video-player-description p {
+	width: 748px;
+	margin: 5px 0;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	overflow: hidden;
+	max-height: 40px;
+	font-size: 12px;
+	transition: max-height 0.3s ease-in-out;
+}
+
+#toggle-description {
+	color: #007bff;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+/* Channel Pages */
+.channel-page-info {
+	width: 768px;
+	background-color: #2c2c2c;
+	margin-top: 10px;
+}
+
+.channel-page-banner {
+	width: 100%;
+	height: 130px;
+	object-fit: cover;
+	margin-bottom: -10px;
+}
+
+.channel-page-content {
+	padding: 10px;
+	overflow: hidden;
+}
+
+.channel-page-icon {
+	width: 80px;
+	height: 80px;
+	float: left;
+	margin-right: 15px;
+	border-radius: 50%;
+}
+
+.channel-page-details {
+	margin-top: 10px;
+	overflow: hidden;
+}
+
+.channel-page-details h2 {
+	margin: 0;
+	font-size: 24px;
+}
+
+.channel-page-details p {
+	margin: 5px 0 0 0;
+	color: #aaa;
+}
+
+/* Channel Navigation Buttons */
+.channel-page-nav {
+	background-color: #1e1e1e;
+	padding: 4px;
+	text-align: left;
+	border-top: 1px solid #333;
+	border-bottom: 1px solid #333;
+}
+
+.channel-page-nav button {
+	background-color: #2c2c2c;
+	color: #e0e0e0;
+	border: none;
+	border-bottom: 3px solid #2c2c2c;
+	padding: 6px 20px;
+	margin: 2px;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.channel-page-nav button:hover {
+	background-color: #3a3a3a;
+}
+
+.channel-page-nav .active-tab {
+	border-bottom: 3px solid #555;
+	font-weight: bold;
+}
+
+.channel-page-about {
+	padding: 10px;
+	width: 746px;
+	background-color: #1e1e1e;
+	margin-top: 10px;
+	border: 1px solid #333;
+}
+
+.channel-page-about h2 {
+	margin: 0;
+	font-size: 18px;
+}
+
+.channel-page-about p {
+	padding: 5px;
+	color: #aaa;
+}
+
+.channel-page-sort {
+	margin-top: 10px;
+	background-color: #1e1e1e;
+	padding: 4px;
+	text-align: left;
+	border: 1px solid #333;
+}
+
+.channel-page-select-box {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	background-color: #1e1e1e;
+	padding: 10px;
+	text-align: center;
+	border: 1px solid #333;
+}
+
+.channel-page-select-box a {
+	background-color: #2c2c2c;
+	color: #e0e0e0;
+	border: none;
+	padding: 6px 20px;
+	font-size: 14px;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.playlist-grid {
+	display: block;
+	margin-top: 20px;
+}
+
+.playlist-row {
+	display: block;
+	margin-bottom: 20px;
+}
+
+.playlist-box {
+	width: 200px;
+	text-decoration: none;
+	margin-right: 16px;
+	margin-left: 16px;
+	margin-bottom: 16px;
+	float: left;
+	background-color: #1e1e1e;
+	border: 1px solid #333;
+	padding: 10px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+	position: relative;
+	text-align: center;
+}
+
+.playlist-title {
+	font-size: 14px;
+	font-weight: bold;
+	color: #e0e0e0;
+	margin-top: 8px;
+	line-height: 1.3;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.playlist-meta {
+	font-size: 12px;
+	color: #aaa;
+	margin-top: 15px;
+}
+
+/* Playlist window */
+.playlist-page {
+	width: 748px;
+	background-color: #1e1e1e;
+	margin-top: 10px;
+	padding: 10px;
+	overflow: hidden;
+}
+
+.playlist-page h2 {
+	margin: 0;
+	font-size: 20px;
+}
+
+.playlist-page p {
+	font-size: 14px;
+	margin: 5px 0 0 0;
+	color: #aaa;
+	padding: 10px;
+}
+
+.playlist-page button {
+	float: right;
+	background-color: #2c2c2c;
+	color: #e0e0e0;
+	border: none;
+	border-bottom: 3px solid #2c2c2c;
+	padding: 6px 20px;
+	margin: 2px;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+/* Channel Management */
+
+.channel-url-bar {
+	display: block;
+}
+
+.channel-url-bar input {
+	padding: 2px;
+	width: 400px;
+	border: 2px solid #2c2c2c;
+	border-radius: 2px;
+	background-color: #151515;
+	color: #e0e0e0;
+}
+
+.update-channel-box {
+	width: 728px; 
+	height: 300px; 
+	overflow-y: auto; 
+	border: 1px solid #2c2c2c; 
+	background-color: #151515;
+	padding: 5px;
+}
+
+.update-channel-item {
+	padding:5px; 
+	border-bottom:1px solid #eee;
+}
+
+.update-channel-checkbox {
+	
+}
+
+.update-channel-uploader {
+	margin-left: 5px;
+}
+
+.update-channel-last_checked {
+	float: right;
+}
+

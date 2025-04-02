@@ -1,0 +1,27 @@
+{% extends "modern/1_ModernBase.html" %}
+
+{% block title %}Channels{% endblock %}
+
+{% block content %}
+	<div class="channel-list-sort">
+		<label for="sort">Sort by:</label>
+		<select id="sort" name="sort" onchange="location = this.value;">
+			<option value="/channels?sort=alpha" {% if sort_by == 'alpha' %}selected{% endif %}>Alphabetical</option>
+			<option value="/channels?sort=most_videos" {% if sort_by == 'most_videos' %}selected{% endif %}>Most Videos</option>
+			<option value="/channels?sort=date" {% if sort_by == 'date' %}selected{% endif %}>Date Added</option>
+		</select>
+		<a href="/ChannelManagement" class="settings-page-button">Manage Channels</a>
+	</div>
+	
+	{% for channel in channels %}
+		<div class="channel-list-box">
+			<img src="{{ channel.channel_icon }}" alt="{{ channel.uploader }} icon" class="channel-list-icon">
+			<div class="channel-list-info">
+				<h3>{{ channel.uploader }}</h3>
+				<p>Subscribers: {{ channel.subscriber_count[1] }}</p>
+				<p>Total Videos: {{ channel.channel_videos }}</p>
+			</div>
+			<a href="/{{ channel.uploader_id }}" class="channel-list-view-button">View Channel</a>
+		</div>
+	{% endfor %}
+{% endblock %}

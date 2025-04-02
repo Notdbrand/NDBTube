@@ -1,0 +1,110 @@
+{% extends "modern/1_ModernBase.html" %}
+
+{% block title %} {{ video.title }} - NDBTube{% endblock %}
+
+{% block content %}
+	<!-- Video Player -->
+	<div class="video-player-container">
+		<video controls>
+			<source src="/{{ video.video_location }}" type="video/mp4">
+			Your browser does not support the video tag.
+		</video>
+		<div class="video-info">
+			<h1>{{ video.title }}</h1>
+			<p>Views: {{ video.views[1] }} &bull; Likes: {{ video.likes[1] }}  &bull; Upload Date: {{ video.uploaddate }}</p>
+			
+			<img src="{{ channel_info.channel_icon }}" alt="{{ channel_info.uploader }} icon" class="video-player-channel-icon">
+			<div class="video-player-channel-info">
+				<p>{{ channel_info.uploader }} &bull; Subscribers: {{ channel_info.subscriber_count[1] }}</p>
+			</div>
+			<a href="/{{ channel_info.uploader_id }}" class="video-player-channel-button">View Channel</a>
+		</div>
+		<div class="video-player-description">
+			<h2>Original video: <a href="https://youtu.be/{{ video.video_id }}">https://youtu.be/{{ video.video_id }}</a></h2>
+			<h2>Description:</h2>
+			<p id="description-text">{{ video.description|replace('\n', '<br>')|safe }}</p>
+			<a href="javascript:void(0);" id="toggle-description" onclick="toggleDescription()">Show more...</a>
+		</div>
+	</div>
+	<div class="video-preview-container">
+	{% for video in videos %}
+		<div class="video-preview">
+			<a href="/{{ video.uploader_id }}/{{ video.video_id }}">
+				<div class="video-preview-top">
+					<img class="video-preview-thumbnail" src="/{{ video.thumbnail_location }}">
+					<span class="video-preview-duration">{{ video.duration }}</span>
+				</div>
+			</a>
+			<div class="video-preview-bottom">
+				<a href="/{{ video.uploader_id }}"><img class="video-preview-channel-icon" src="/static/channels/{{ video.uploader_id }}/channel.png"></a>
+				<div class="video-preview-info">
+					<a href="/{{ video.uploader_id }}/{{ video.video_id }}" class="video-preview-title">{{ video.title }}</a>
+					<a href="/{{ video.uploader_id }}" class="video-preview-channel">{{ video.uploader }}</a>
+					<a href="/{{ video.uploader_id }}/{{ video.video_id }}" class="video-preview-sub-info">{{ video.views[1] }} views • {{ video.uploaddate }}</a>
+				</div>
+			</div>
+		</div>
+	{% endfor %}
+</div>
+<!-- Description access -->
+<script type="text/javascript">
+	function toggleDescription() {
+		var description = document.getElementById("description-text");
+		var toggleLink = document.getElementById("toggle-description");
+
+		if (description.style.maxHeight) {
+			description.style.maxHeight = null;
+			toggleLink.innerHTML = "Show more...";
+		} else {
+			description.style.maxHeight = description.scrollHeight + "px";
+			toggleLink.innerHTML = "Show less...";
+		}
+	}
+	document.addEventListener("DOMContentLoaded", function () {
+		let loading = false;
+
+		window.addEventListener("scroll", function () {
+			if (loading) return;
+
+			// Check if the user scrolled near the bottom (adjust threshold as needed)
+			if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+				loading = true;
+				fetchMoreVideos();
+			}
+		});
+
+		function fetchMoreVideos() {
+			fetch("/load_more_videos")
+				.then(response => response.json())
+				.then(videos => {
+					const container = document.querySelector(".video-preview-container");
+
+					videos.forEach(video => {
+						const videoElement = document.createElement("div");
+						videoElement.classList.add("video-preview");
+						videoElement.innerHTML = `
+							<a href="/${video.uploader_id}/${video.video_id}">
+								<div class="video-preview-top">
+									<img class="video-preview-thumbnail" src="/${video.thumbnail_location}">
+									<span class="video-preview-duration">${video.duration}</span>
+								</div>
+							</a>
+							<div class="video-preview-bottom">
+								<a href="/${video.uploader_id}"><img class="video-preview-channel-icon" src="/static/channels/${video.uploader_id}/channel.png"></a>
+								<div class="video-preview-info">
+									<a href="/${video.uploader_id}/${video.video_id}" class="video-preview-title">${video.title}</a>
+									<a href="/${video.uploader_id}" class="video-preview-channel">${video.uploader}</a>
+									<a href="/${video.uploader_id}/${video.video_id}" class="video-preview-sub-info">${video.views[1]} views • ${video.uploaddate}</a>
+								</div>
+							</div>
+						`;
+						container.appendChild(videoElement);
+					});
+
+					loading = false;
+				})
+				.catch(() => loading = false);
+		}
+	});
+</script>
+{% endblock %}

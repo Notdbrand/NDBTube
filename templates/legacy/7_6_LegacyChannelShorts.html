@@ -1,0 +1,373 @@
+{% extends "legacy/7_0_LegacyChannelBase.html" %}
+
+{% block title %}{{ channel }} - Shorts{% endblock %}
+
+{% block content %}
+	<!-- Channel Navigation Buttons (as continuation) -->
+	<div class="channel-page-nav">
+		<button onclick="window.location.href='/{{ channel_info.uploader_id }}'">Featured</button>
+		<button onclick="window.location.href='/{{ channel_info.uploader_id }}/videos'">Videos</button>
+		<button class="active-tab" onclick="window.location.href='/{{ channel_info.uploader_id }}/shorts'">Shorts</button>
+		{% if "streams" in channel_info.channel_sections %}
+			<button onclick="window.location.href='/{{ channel_info.uploader_id }}/streams'">Streams</button>
+		{% endif %}
+		
+		{% if "playlists" in channel_info.channel_sections %}
+			<button onclick="window.location.href='/{{ channel_info.uploader_id }}/playlists'">Playlists</button>
+		{% endif %}
+		<button onclick="window.location.href='/{{ channel_info.uploader_id }}/about'">About</button>
+	</div>
+	
+	<!-- Sorting Dropdown -->
+	<div class="channel-page-sort">
+		<form action="" method="get" id="sortForm">
+			<label for="sort">Sort by:</label>
+			<select name="sort" id="sort" onchange="document.getElementById('sortForm').submit();">
+				<option value="newest" {% if sort_by == "newest" %}selected{% endif %}>Newest</option>
+				<option value="oldest" {% if sort_by == "oldest" %}selected{% endif %}>Oldest</option>
+				<option value="popular" {% if sort_by == "popular" %}selected{% endif %}>Most Popular</option>
+				<option value="leastpopular" {% if sort_by == "leastpopular" %}selected{% endif %}>Least Popular</option>
+			</select>
+		</form>
+	</div>
+	
+	<!-- Video Preview Grid -->
+	<div class="video-grid">
+		{% for video in videos %}
+			{% if loop.index % 3 == 1 %}
+				<div class="video-row clearfix">
+					{% endif %}
+						<a href="/{{ video.uploader_id }}/{{ video.video_id }}">
+							<div class="video-preview">
+								<img class="video-thumbnail" src="/{{ video.thumbnail_location }}" alt="{{ video.title }}">
+								<p>{{ video.duration }}</p>
+								<div class="video-title">{{ video.title }}</div>
+								<div class="video-meta">
+									<span>{{ video.views[1] }} views</span> &bull; <span>{{ video.uploaddate }}</span>
+								</div>
+							</div>
+						</a>
+					{% if loop.index % 3 == 0 or loop.last %}
+				</div>
+			{% endif %}
+		{% endfor %}
+	</div>
+	
+	<!-- Page Controls -->
+	<div class="channel-page-select-box">
+		{% if page > 1 %}
+			<a href="?sort={{ sort_by }}&page={{ page - 1 }}">Previous</a>
+		{% endif %}
+		<span>Page {{ page }} of {{ total_pages }}</span>
+		{% if page < total_pages %}
+			<a href="?sort={{ sort_by }}&page={{ page + 1 }}">Next</a>
+		{% endif %}
+	</div>
+{% endblock %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=768, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>{{ channel }} - Videos</title>
+    <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    .container {
+      width: 768px;
+      margin: 0 auto;
+    }
+    header {
+      height: 30px;
+      background-color: #333;
+      color: white;
+      padding: 5px;
+      overflow: hidden;
+    }
+    header h1 {
+      margin-top: -4px;
+      float: left;
+    }
+    header h1 a {
+      color: white;
+      text-decoration: none;
+    }
+    .search-bar {
+      float: left;
+      margin-left: 100px;
+      display: block;
+    }
+    .search-bar input {
+      padding: 5px;
+      width: 200px;
+      border: none;
+      border-radius: 5px;
+    }
+    .search-bar button {
+      padding: 5px 10px;
+      margin-left: 5px;
+      background-color: #555;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .search-bar button:hover {
+      background-color: #777;
+    }
+    .channels-button {
+      float: right;
+      padding: 5px 15px;
+      margin-left: 10px;
+      background-color: #555;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .channels-button:hover {
+      background-color: #777;
+    }
+    /* Video Grid Layout */
+    .video-grid {
+      display: block;
+      margin-top: 20px;
+    }
+    .video-row {
+      display: block;
+      margin-bottom: 20px;
+    }
+    .video-preview {
+      width: 200px;
+      margin-right: 16px;
+      margin-left: 16px;
+      float: left;
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 10px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    .video-thumbnail {
+      width: 100%;
+      height: 120px;
+      background-color: #ccc;
+      border: 1px solid #ddd;
+      background-size: cover;
+      background-position: center;
+    }
+	.video-preview p {
+		position: absolute;
+		margin-left: 165px;
+		margin-top: -27px;
+		display: inline block;
+		font-size: 10px;
+		padding: 3px;
+		background-color: rgba(0, 0, 0, 0.7);
+		color: white;
+		border-radius: 5px;
+	}
+    .video-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #333;
+      margin-top: 8px;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .video-meta {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+    .video-thumbnail:hover {
+      border-color: #888;
+    }
+    /* Clearfix for rows */
+    .clearfix::after {
+      content: "";
+      clear: both;
+      display: table;
+    }
+	
+	/* Channel Info Section */
+	.channel-info {
+		width: 768px;
+		background-color: #d3d3d3;
+		margin-top: 10px;
+	}
+
+	.channel-banner {
+		width: 100%;
+		height: 130px;
+		object-fit: cover;
+		margin-bottom: -10px;
+	}
+
+	.channel-content {
+		padding: 10px;
+		overflow: hidden;
+	}
+
+	.channel-icon {
+		width: 80px;
+		height: 80px;
+		float: left;
+		margin-right: 15px;
+		border-radius: 50%;
+	}
+
+	.channel-details {
+		margin-top: 10px;
+		overflow: hidden;
+	}
+
+	.channel-details h2 {
+		margin: 0;
+		font-size: 24px;
+	}
+
+	.channel-details p {
+		margin: 5px 0 0 0;
+		color: #555;
+	}
+	/* Channel Navigation Buttons */
+	.channel-nav {
+		background-color: #e0e0e0;
+		padding: 4px;
+		text-align: left;
+		border-top: 1px solid #ccc;
+		border-bottom: 1px solid #ccc;
+	}
+
+	.channel-nav button {
+		background-color: #d3d3d3;
+		color: black;
+		border: none;
+		border-bottom: 3px solid #d3d3d3;
+		padding: 6px 20px;
+		margin: 2px 2px;
+		font-size: 14px;
+		cursor: pointer;
+	}
+
+	.channel-nav button:hover {
+		background-color: #c7c7c7;
+	}
+
+	.channel-nav .active-tab {
+		border-bottom: 3px solid #a1a1a1;
+		font-weight: bold;
+	}
+	/* Channel Sort Form */
+	.channel-sort {
+		margin-top: 10px;
+		background-color: #e0e0e0;
+		padding: 4px;
+		text-align: left;
+		border: 1px solid #ccc;
+	}
+	/* Page box */
+	.page-box {
+		margin-top: 10px;
+		margin-bottom: 10px;
+		background-color: #e0e0e0;
+		padding: 10px;
+		text-align: center;
+		border: 1px solid #ccc;
+	}
+	.page-box a {
+		background-color: #d3d3d3;
+		color: black;
+		border: none;
+		padding: 6px 20px;
+		font-size: 14px;
+		cursor: pointer;
+		text-decoration: none;
+	}
+
+    </style>
+</head>
+<body>
+	<div class="container">
+		<header>
+		  <h1><a href="/">NDBTube</a></h1>
+		  <form action="/search" method="get" class="search-bar">
+			<input type="text" name="q" placeholder="Search videos..." required>
+			<button type="submit">Search</button>
+		  </form>
+		  <button class="channels-button" onclick="window.location.href='/settings'">Settings</button>
+		  <button class="channels-button" onclick="window.location.href='/channels'">Channels</button>
+		</header>
+
+        <!-- Channel Info Section -->
+		<div class="channel-info">
+			<img class="channel-banner" src="{{ channel_info.banner_path }}" alt="Channel Banner">
+			<div class="channel-content clearfix">
+				<img class="channel-icon" src="{{ channel_info.channel_icon }}" alt="Channel Icon">
+				<div class="channel-details">
+					<h2>{{ channel_info.uploader }}</h2>
+					<p>{{ channel_info.uploader_id }} &bull; {{ channel_info.subscriber_count }} Subscribers &bull; {{ channel_info.video_count }} videos</p>
+				</div>
+			</div>
+			<!-- Channel Navigation Buttons (as continuation) -->
+			<div class="channel-nav">
+				<button onclick="window.location.href='/{{ channel_info.uploader_id }}'">Featured</button>
+				<button class="active-tab" onclick="window.location.href='/{{ channel_info.uploader_id }}/videos'">Videos</button>
+				<button onclick="window.location.href='/{{ channel_info.uploader_id }}/playlists'">Playlists</button>
+				<button onclick="window.location.href='/{{ channel_info.uploader_id }}/about'">About</button>
+			</div>
+		</div>
+		
+		<!-- Sorting Dropdown -->
+		<div class="channel-sort">
+			<form action="" method="get" id="sortForm">
+				<label for="sort">Sort by:</label>
+				<select name="sort" id="sort" onchange="document.getElementById('sortForm').submit();">
+					<option value="newest" {% if sort_by == "newest" %}selected{% endif %}>Newest</option>
+					<option value="popular" {% if sort_by == "popular" %}selected{% endif %}>Most Popular</option>
+					<option value="oldest" {% if sort_by == "oldest" %}selected{% endif %}>Oldest</option>
+				</select>
+			</form>
+		</div>
+		
+		<!-- Video Preview Grid -->
+		<div class="video-grid">
+			{% for video in videos %}
+				{% if loop.index % 3 == 1 %}
+					<div class="video-row clearfix">
+						{% endif %}
+							<a href="/{{ video.uploader_id }}/{{ video.video_id }}">
+								<div class="video-preview">
+									<img class="video-thumbnail" src="/{{ video.thumbnail_location }}" alt="{{ video.title }}">
+									<p>{{ video.duration }}</p>
+									<div class="video-title">{{ video.title }}</div>
+									<div class="video-meta">
+										<span>{{ video.views }} views</span> &bull; <span>{{ video.uploaddate }}</span>
+									</div>
+								</div>
+							</a>
+						{% if loop.index % 3 == 0 or loop.last %}
+					</div>
+				{% endif %}
+			{% endfor %}
+		</div>
+		<!-- Page Controls -->
+		<div class="page-box">
+			{% if page > 1 %}
+				<a href="?sort={{ sort_by }}&page={{ page - 1 }}">Previous</a>
+			{% endif %}
+			<span>Page {{ page }} of {{ total_pages }}</span>
+			{% if page < total_pages %}
+				<a href="?sort={{ sort_by }}&page={{ page + 1 }}">Next</a>
+			{% endif %}
+		</div>
+	</div>
+</body>
+</html>
