@@ -4,6 +4,7 @@ import locale
 from datetime import datetime
 import json
 import shutil
+import sys
 
 locale.setlocale(locale.LC_TIME, '')
 
@@ -173,8 +174,9 @@ def download_videos(uploader_id, video_entries, output_folder, type):
             'writeinfojson': False,
             'match_filter': MemberFilter,
             'format': (
-                f'bv*[ext=mp4][height<={server_settings["video_quality"]["resolution"]}][fps<={server_settings["video_quality"]["fps"]}][tbr<={server_settings["video_quality"]["bitrate"]}]+ba[ext=m4a]/'
-                f'b[ext=mp4][height<={server_settings["video_quality"]["resolution"]}][fps<={server_settings["video_quality"]["fps"]}][tbr<={server_settings["video_quality"]["bitrate"]}]'
+                f'bestvideo[ext=mp4][height<={server_settings["video_quality"]["resolution"]}][fps<={server_settings["video_quality"]["fps"]}]+bestaudio[ext=m4a]/'
+                f'best[ext=mp4][height<={server_settings["video_quality"]["resolution"]}][fps<={server_settings["video_quality"]["fps"]}]/'
+                'bestvideo+bestaudio/best'
             ),
             'postprocessors': [
                 {'key': 'FFmpegVideoConvertor', 'preferedformat': 'mp4'},
@@ -252,16 +254,6 @@ def calculate_total_views(video_metadata_file):
                 
     return total_views
 
-def calculate_total_videos(video_metadata_file):   
-    if os.path.exists(video_metadata_file):
-        with open(video_metadata_file, 'r', encoding='utf-8') as f:
-            try:
-                videos = json.load(f)
-                total_videos = len(videos)
-            except json.JSONDecodeError:
-                total_videos = 0
-    return total_videos
-
 def update_all_videos(video_metadata):
     all_videos_path = os.path.join("static", "All_Videos.json")
     
@@ -310,13 +302,15 @@ def get_playlists(channel_url, output_folder, uploader_id):
                     continue
                 
                 playlist_info = ydl.extract_info(playlist_url, download=False)
-                
+                #print("Playlist Info:")
+                #print(json.dumps(playlist_info, indent=2))
                 videos = []
                 for idx, entry in enumerate(playlist_info.get('entries', [])):
                     duration = entry.get('duration', 0)
                     videos.append({
                         'order': idx + 1,
-                        'uploader_id': uploader_id,
+                        'uploader': entry.get('uploader', 'Unknown'),
+                        'uploader_id': entry.get('uploader_id', 'Unknown'),
                         'video_id': entry.get('id', 'Unknown'),
                         'title': entry.get('title', 'Unknown Title'),
                         'duration': format_duration(duration)
@@ -325,6 +319,7 @@ def get_playlists(channel_url, output_folder, uploader_id):
                 playlists.append({
                     'playlist_id': playlist_info.get('id', 'Unknown'),
                     'title': playlist_info.get('title', 'Unknown Playlist'),
+                    'view_count': playlist_info.get('view_count', 'Unknown Playlist'),
                     'description': playlist_info.get('description', ''),
                     'amount': len(videos),
                     'videos': videos
@@ -334,62 +329,190 @@ def get_playlists(channel_url, output_folder, uploader_id):
     except:
         return []
         
-def process_channel(channel_url, include_shorts=False, include_streams=False):
+def load_channel_content_json(uploader_id, type):
+    channel_path = f"static/channels/{uploader_id}/{uploader_id}_{type}.json"
+    with open(channel_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+        
+        
+def process_channel(channel_url, include_videos=False, include_shorts=False, include_streams=False, quick_update=False):
     channel_info, channelcontentdata, uploader_id, sections = GetChannelInfo(channel_url)
     output_folder = os.path.join("static", "channels", uploader_id)
+    print(uploader_id)
     os.makedirs(output_folder, exist_ok=True)
     video_views = shorts_views = streams_views = 0
-    video_count = shorts_count = streams_count = 0
     downloaded_sections = []
+    
     #Videos
     try:
-        if "videos" in sections:
+        if "videos" in sections and include_videos:
             video_entries = channelcontentdata["videos"]
-            video_metadata = download_videos(uploader_id, video_entries, output_folder, "videos")
             video_metadata_file = os.path.join(output_folder, f"{uploader_id}_Videos.json")
-            save_json(video_metadata, video_metadata_file)
-            video_views = calculate_total_views(video_metadata_file)
-            video_count = calculate_total_videos(video_metadata_file)
-            update_all_videos(video_metadata)
-            downloaded_sections.append("Vidoes")
-    except:
-        print("Channel doesn't have any normal videos")
+            existing_metadata = []
+            existing_ids = set()
+            if os.path.exists(video_metadata_file):
+                with open(video_metadata_file, 'r', encoding='utf-8') as f:
+                    try:
+                        existing_metadata = json.load(f)
+                        existing_ids = {video['video_id'] for video in existing_metadata}
+                    except json.JSONDecodeError:
+                        existing_metadata = []
+
+            if quick_update:
+                video_entries = [v for v in video_entries if v['id'] not in existing_ids]
+
+            if video_entries:
+                new_video_metadata = download_videos(uploader_id, video_entries, output_folder, "videos")
+
+                if quick_update:
+                    combined_dict = {v['video_id']: v for v in existing_metadata}
+                    for v in new_video_metadata:
+                        combined_dict[v['video_id']] = v
+                    combined_metadata = list(combined_dict.values())
+                    combined_metadata.sort(
+                        key=lambda x: datetime.strptime(x['uploaddate'], "%d/%m/%Y") if x['uploaddate'] != "Unknown" else datetime.min,
+                        reverse=True
+                    )
+                    for index, video in enumerate(combined_metadata, start=1):
+                        video['newest_order'] = index
+
+                    save_json(combined_metadata, video_metadata_file)
+                else:
+                    new_video_metadata.sort(
+                        key=lambda x: datetime.strptime(x['uploaddate'], "%d/%m/%Y") if x['uploaddate'] != "Unknown" else datetime.min,
+                        reverse=True
+                    )
+                    for index, video in enumerate(new_video_metadata, start=1):
+                        video['newest_order'] = index
+
+                    save_json(new_video_metadata, video_metadata_file)
+
+                update_all_videos(new_video_metadata)
+            else:
+                print("No new videos found.")
+    except Exception as e:
+        print(f"Channel doesn't have any normal videos or an error occurred: {e}")
+    
     #Shorts
     try:
         if "shorts" in sections and include_shorts:
             shorts_entries = channelcontentdata["shorts"]
-            shorts_metadata = download_videos(uploader_id, shorts_entries, output_folder, "shorts")
             shorts_metadata_file = os.path.join(output_folder, f"{uploader_id}_Shorts.json")
-            save_json(shorts_metadata, shorts_metadata_file)
-            shorts_views = calculate_total_views(shorts_metadata_file)
-            shorts_count = calculate_total_videos(shorts_metadata_file)
-            update_all_videos(shorts_metadata)
-            downloaded_sections.append("Shorts")
-    except:
-        print("Channel doesn't have any shorts")
+            existing_metadata = []
+            existing_ids = set()
+            if os.path.exists(shorts_metadata_file):
+                with open(shorts_metadata_file, 'r', encoding='utf-8') as f:
+                    try:
+                        existing_metadata = json.load(f)
+                        existing_ids = {video['video_id'] for video in existing_metadata}
+                    except json.JSONDecodeError:
+                        existing_metadata = []
+
+            if quick_update:
+                shorts_entries = [v for v in shorts_entries if v['id'] not in existing_ids]
+
+            if shorts_entries:
+                new_metadata = download_videos(uploader_id, shorts_entries, output_folder, "shorts")
+
+                if quick_update:
+                    combined_dict = {v['video_id']: v for v in existing_metadata}
+                    for v in new_metadata:
+                        combined_dict[v['video_id']] = v
+                    combined_metadata = list(combined_dict.values())
+                    combined_metadata.sort(
+                        key=lambda x: datetime.strptime(x['uploaddate'], "%d/%m/%Y") if x['uploaddate'] != "Unknown" else datetime.min,
+                        reverse=True
+                    )
+                    for index, video in enumerate(combined_metadata, start=1):
+                        video['newest_order'] = index
+
+                    save_json(combined_metadata, video_metadata_file)
+                else:
+                    new_metadata.sort(
+                        key=lambda x: datetime.strptime(x['uploaddate'], "%d/%m/%Y") if x['uploaddate'] != "Unknown" else datetime.min,
+                        reverse=True
+                    )
+                    for index, video in enumerate(new_metadata, start=1):
+                        video['newest_order'] = index
+
+                    save_json(new_metadata, shorts_metadata_file)
+
+                update_all_videos(new_metadata)
+            else:
+                print("No new shorts found.")
+    except Exception as e:
+        print(f"Channel doesn't have any shorts or an error occurred: {e}")
+
     #Streams
     try:
         if "streams" in sections and include_streams:
             streams_entries = channelcontentdata["streams"]
-            streams_metadata = download_videos(uploader_id, streams_entries, output_folder, "streams")
             streams_metadata_file = os.path.join(output_folder, f"{uploader_id}_Streams.json")
-            save_json(streams_metadata, streams_metadata_file)
-            streams_views = calculate_total_views(streams_metadata_file)
-            streams_count = calculate_total_videos(streams_metadata_file)
-            update_all_videos(streams_metadata)
-            downloaded_sections.append("Streams")
-    except:
-        print("Channel doesn't have any streams")
+            existing_metadata = []
+            existing_ids = set()
+            if os.path.exists(streams_metadata_file):
+                with open(streams_metadata_file, 'r', encoding='utf-8') as f:
+                    try:
+                        existing_metadata = json.load(f)
+                        existing_ids = {video['video_id'] for video in existing_metadata}
+                    except json.JSONDecodeError:
+                        existing_metadata = []
+
+            if quick_update:
+                streams_entries = [v for v in streams_entries if v['id'] not in existing_ids]
+
+            if streams_entries:
+                new_metadata = download_videos(uploader_id, streams_entries, output_folder, "streams")
+
+                if quick_update:
+                    combined_dict = {v['video_id']: v for v in existing_metadata}
+                    for v in new_metadata:
+                        combined_dict[v['video_id']] = v
+                    combined_metadata = list(combined_dict.values())
+                    combined_metadata.sort(
+                        key=lambda x: datetime.strptime(x['uploaddate'], "%d/%m/%Y") if x['uploaddate'] != "Unknown" else datetime.min,
+                        reverse=True
+                    )
+                    for index, video in enumerate(combined_metadata, start=1):
+                        video['newest_order'] = index
+
+                    save_json(combined_metadata, video_metadata_file)
+                else:
+                    new_metadata.sort(
+                        key=lambda x: datetime.strptime(x['uploaddate'], "%d/%m/%Y") if x['uploaddate'] != "Unknown" else datetime.min,
+                        reverse=True
+                    )
+                    for index, video in enumerate(new_metadata, start=1):
+                        video['newest_order'] = index
+
+                    save_json(new_metadata, streams_metadata_file)
+
+                update_all_videos(new_metadata)
+            else:
+                print("No new streams found.")
+    except Exception as e:
+        print(f"Channel doesn't have any streams or an error occurred: {e}")
     
-    
+    if os.path.isfile(os.path.join(output_folder, f"{uploader_id}_Videos.json")):
+        downloaded_sections.append("videos")
+        video_views = calculate_total_views(os.path.join(output_folder, f"{uploader_id}_Videos.json"))
+        
+    if os.path.isfile(os.path.join(output_folder, f"{uploader_id}_Shorts.json")):
+        downloaded_sections.append("shorts")
+        shorts_views = calculate_total_views(os.path.join(output_folder, f"{uploader_id}_Shorts.json"))
+        
+    if os.path.isfile(os.path.join(output_folder, f"{uploader_id}_Streams.json")):
+        downloaded_sections.append("streams")
+        streams_views = calculate_total_views(os.path.join(output_folder, f"{uploader_id}_Streams.json"))
+        
     total_views = video_views + shorts_views + streams_views
-    video_count = video_count + shorts_count + streams_count
-    
+    videos_folder = os.path.join(output_folder, "videos")
+    video_count = len([f for f in os.listdir(videos_folder) if os.path.isfile(os.path.join(videos_folder, f))])
     
     print("Fetching playlists...")
     playlists = get_playlists(channel_url, output_folder, uploader_id)
     if playlists != []:
-        downloaded_sections.append("Playlists")
+        downloaded_sections.append("playlists")
         channel_info["channel_sections"].extend(["playlists"])
 
     save_json(playlists, os.path.join(output_folder, f"{uploader_id}_Playlists.json"))
@@ -397,6 +520,7 @@ def process_channel(channel_url, include_shorts=False, include_streams=False):
     
     channel_info['total_views'] = RawAndStyledNumberList(total_views)
     channel_info['video_count'] = video_count
+    channel_info['downloaded_sections'] = downloaded_sections
     save_json(channel_info, os.path.join(output_folder, "channel.json"))
         
     channels_json_path = os.path.join("static", "channels.json")
@@ -406,9 +530,7 @@ def process_channel(channel_url, include_shorts=False, include_streams=False):
         with open(channels_json_path, 'r', encoding='utf-8') as f:
             all_channels = json.load(f)
     
-    # Set the last_checked date using the format_date function
     last_checked_date = datetime.today().strftime('%x')
-    
     channel_found = False
     for channel in all_channels:
         if channel.get('uploader_id') == channel_info.get('uploader_id'):
@@ -419,7 +541,8 @@ def process_channel(channel_url, include_shorts=False, include_streams=False):
                 'videosjson': f"static/channels/{uploader_id}/{uploader_id}_Videos.json",
                 'playlistjson': f"static/channels/{uploader_id}/{uploader_id}_Playlists.json",
                 'channel_URL': f"{channel_url}",
-                'section_prefs': downloaded_sections,
+                'downloaded_sections': downloaded_sections,
+                'to_download_sections': downloaded_sections,
                 'last_checked': last_checked_date
             })
             channel_found = True
@@ -433,17 +556,21 @@ def process_channel(channel_url, include_shorts=False, include_streams=False):
             'total_views': channel_info['total_views'],
             'channel_videos': str(video_count),
             'channel_URL': f"{channel_url}",
-            'section_prefs': downloaded_sections,
+            'downloaded_sections': downloaded_sections,
+            'to_download_sections': downloaded_sections,
             'last_checked': last_checked_date
         })
 
     save_json(all_channels, channels_json_path)
     
 def main():
-    channel_url = input("Enter channel URL: ")
-    include_shorts = input("Include Shorts? (True/False): ").strip().lower() == "true"
-    include_streams = input("Include Streams? (True/False): ").strip().lower() == "true"
-    process_channel(channel_url, include_shorts, include_streams)
+    channel_url = input("Enter channel URL: \n")
+    include_videos = input("Include Videos? (True/False): \n").strip().lower() == "true"
+    include_shorts = input("Include Shorts? (True/False): \n").strip().lower() == "true"
+    include_streams = input("Include Streams? (True/False): \n").strip().lower() == "true"
+    quick_update = input("Quickly update existing archive of a youtube channel? (True/False): \n").strip().lower() == "true"
+    print(f"[main] Inputs -> URL: {channel_url}, Videos: {include_videos}, Shorts: {include_shorts}, Streams: {include_streams}, Quick Update: {quick_update}", flush=True)
+    process_channel(channel_url, include_videos, include_shorts, include_streams, quick_update)
 
 if __name__ == "__main__":
     main()
