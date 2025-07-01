@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=768, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+		<title>{% block title %}NDBTube{% endblock %}</title>
+		<link rel="stylesheet" href="/static/css/{{ theme_css }}">
+	</head>
+	<script>
+		(function() {
+			var deviceWidth = window.screen.width;
+			if (deviceWidth < 768) {
+				var scale = deviceWidth / 768;
+				var viewportMeta = document.querySelector('meta[name="viewport"]');
+				viewportMeta.setAttribute('content',
+					'width=768, initial-scale=' + scale + 
+					', maximum-scale=' + scale + 
+					', minimum-scale=' + scale + 
+					', user-scalable=yes'
+				);
+			}
+		})();
+	</script>
+	<body>
+		<div class="container">
+			<header>
+				<a href="/">NDBTube</a>
+				<form action="/legacy/search" method="get" class="search-bar">
+					<input type="text" name="q" placeholder="Search videos..." required>
+					<button type="submit">Search</button>
+				</form>
+				<button class="channels-button" onclick="window.location.href='/settings'">Settings</button>
+				<button class="channels-button" onclick="window.location.href='/channels'">Channels</button>
+			</header>
+		{% if channels == [] and not on_channel_management %}
+			<div class="settings-header">
+				<span>No Channels downloaded. Go to channel management to download one. <a href="/ChannelManagement" class="settings-page-button">Channel Management</a></span>
+			</div>
+		{% endif %}
+		{% block content %}
+		{% endblock %}
+		</div>
+	</body>
+</html>

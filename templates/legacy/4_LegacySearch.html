@@ -1,0 +1,59 @@
+{% extends "legacy/1_LegacyBase.html" %}
+
+{% block title %}Search{% endblock %}
+
+{% block content %}
+	{% if total_Channels == 0 %}
+		<div class="settings-header">
+			<span>No Channels downloaded. Go to channel management to download one. <a href="/ChannelManagement" class="settings-page-button">Channel Management</a></span>
+		</div>
+	{% endif %}
+	
+	{% if total_pages == 0 %}
+	<h1>No Results for "{{ query }}"</h1>
+	{% endif %}
+	
+	{% if total_pages != 0 %}
+	<h1>Search Results for "{{ query }}"</h1>
+	<!-- Page Controls -->
+	<div class="channel-page-select-box">
+		{% if page > 1 %}
+			<a href="?q={{ query }}&page={{ page - 1 }}">Previous</a>
+		{% endif %}
+		<span>Page {{ page }} of {{ total_pages }}</span>
+		{% if page < total_pages %}
+			<a href="?q={{ query }}&page={{ page + 1 }}">Next</a>
+		{% endif %}
+	</div>
+    <div class="video-grid">
+		{% for video in videos %}
+			{% if loop.index % 3 == 1 %}
+				<div class="video-row clearfix">
+					{% endif %}
+						<a href="/{{ video.uploader_id }}/{{ video.video_id }}">
+							<div class="video-preview">
+								<img class="video-thumbnail" src="/{{ video.thumbnail_location }}" alt="{{ video.title }}">
+								<p>{{ video.duration }}</p>
+								<div class="video-title">{{ video.title }}</div>
+									<div class="video-meta">
+										<span>{{ video.uploader }}</span> &bull; <span>{{ video.uploaddate }}</span>
+									</div>
+							</div>
+						</a>
+					{% if loop.index % 3 == 0 or loop.last %}
+				</div>
+			{% endif %}
+		{% endfor %}
+    </div>
+	<!-- Page Controls -->
+	<div class="channel-page-select-box">
+		{% if page > 1 %}
+			<a href="?q={{ query }}&page={{ page - 1 }}">Previous</a>
+		{% endif %}
+		<span>Page {{ page }} of {{ total_pages }}</span>
+		{% if page < total_pages %}
+			<a href="?q={{ query }}&page={{ page + 1 }}">Next</a>
+		{% endif %}
+	</div>
+	{% endif %}
+{% endblock %}

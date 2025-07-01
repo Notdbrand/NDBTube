@@ -1,0 +1,172 @@
+{% extends "legacy/1_LegacyBase.html" %}
+
+{% block title %}NDBTube - Account{% endblock %}
+
+{% block content %}
+	<!-- Account -->
+	<div class="settings-header">
+		<p>Account: {{ user["username"] }}</p>
+		<a href="/AccountManagement" class="settings-page-button">Back</a>
+	</div>
+	
+	<!-- Role -->
+	<div class="settings-header">
+		<p>Change Role</p>
+	</div>
+	<div class="settings-panel">
+		<div>
+			<div class="balls main"> 
+				<label for="role">Role:</label>
+				<select name="role" id="role" class="select-main">
+					<option value="user" {% if current_role == "user" %}selected{% endif %}>User</option>
+					<option value="admin" {% if current_role == "admin" %}selected{% endif %}>Admin</option>
+				</select>
+			</div>
+			<div class="balls main">
+				<button type="button" onclick="saveRole()" class="settings-page-apply-button main">Save</button>
+			</div>
+		</div>
+	</div>
+	
+	<!-- Change Password -->
+	<div class="settings-header">
+		<p>Change Password</p>
+	</div>
+	<div class="settings-panel">
+		<div>
+			<div class="balls main">
+				<label for="current">Current Password:</label>
+				<input type="password" id="current" name="current" class="select-main">
+			</div>
+			<div class="balls main">
+				<label for="new">New Password:</label>
+				<input type="password" id="new" name="new" class="select-main">
+			</div>
+			<div class="balls main">
+				<label for="confirm">Confirm Password:</label>
+				<input type="password" id="confirm" name="confirm" class="select-main">
+			</div>
+			<div class="balls main">
+				<button type="button" onclick="savePassword()" class="settings-page-apply-button main">Save</button>
+			</div>
+		</div>
+	</div>
+	
+	<!-- Delete Account -->
+	<div class="settings-header">
+		<p>Delete Account</p>
+	</div>
+	<div class="settings-panel management">
+		<div class="settings-panel-form">
+			<div class="balls">
+				<label for="deletepassword">Account Password:</label>
+				<input type="password" id="deletepassword" name="deletepassword" class="select-main">
+			</div>
+			<div class="balls main">
+				<button type="button" onclick="deleteAccount()" class="settings-page-apply-button main">Delete</button>
+			</div>
+		</div>
+	</div>
+	
+	<script>
+		function saveRole() {
+			var username = "{{ user['username'] }}";
+			var new_role = document.getElementById("role").value;
+
+			var payload = {
+				username: username,
+				new_role: new_role
+			};
+
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", '/AccountManagement/{{ user["id"] }}/role', true);
+			xhr.setRequestHeader("Content-Type", "application/json");
+
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 4) {
+					if (xhr.status === 200) {
+						alert("Role Changed.");
+						location.reload();
+					} else {
+						try {
+							var data = JSON.parse(xhr.responseText);
+							alert(data.message || "Failed to change role.");
+						} catch (e) {
+							alert("Failed to change role.");
+						}
+					}
+				}
+			};
+
+			xhr.send(JSON.stringify(payload));
+		}
+		
+		function savePassword() {
+			var username = "{{ user['username'] }}";
+			var current_password = document.getElementById("current").value;
+			var new_password = document.getElementById("new").value;
+			var confirm_password = document.getElementById("confirm").value;
+
+			var payload = {
+				username: username,
+				current_password: current_password,
+				new_password: new_password,
+				confirm_password: confirm_password
+			};
+
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", '/AccountManagement/{{ user["id"] }}/password', true);
+			xhr.setRequestHeader("Content-Type", "application/json");
+
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 4) {
+					if (xhr.status === 200) {
+						alert("Password Changed.");
+						location.reload();
+					} else {
+						try {
+							var data = JSON.parse(xhr.responseText);
+							alert(data.message || "Failed to change password.");
+						} catch (e) {
+							alert("Failed to change password.");
+						}
+					}
+				}
+			};
+
+			xhr.send(JSON.stringify(payload));
+		}
+		
+		function deleteAccount() {
+			var username = "{{ user['username'] }}";
+			var deletepassword = document.getElementById("deletepassword").value;
+
+			var payload = {
+				username: username,
+				deletepassword: deletepassword
+			};
+
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", '/AccountManagement/{{ user["id"] }}/deleteaccount', true);
+			xhr.setRequestHeader("Content-Type", "application/json");
+
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 4) {
+					if (xhr.status === 200) {
+						alert("Account Removed.");
+						window.location.href = '/AccountManagement';
+					} else {
+						try {
+							var data = JSON.parse(xhr.responseText);
+							alert(data.message || "Failed to remove account.");
+						} catch (e) {
+							alert("Failed to remove account.");
+						}
+					}
+				}
+			};
+
+			xhr.send(JSON.stringify(payload));
+		}
+	</script>
+{% endblock %}

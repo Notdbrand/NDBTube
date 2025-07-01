@@ -1,0 +1,109 @@
+{% extends "modern/1_Base.html" %}
+
+{% block title %}NDBTube - History{% endblock %}
+
+{% block content %}
+	<!-- Video History -->
+	<div class="settings-header">
+		<p>History</p>
+		{% if not no_history %}
+			<div id="sort-thing">
+				<label for="sort-select">Sort by:</label>
+				<select id="sort-select">
+					<option value="newest">Newest</option>
+					<option value="oldest">Oldest</option>
+				</select>
+			</div>
+		{% endif %}
+	</div>
+	
+	<!-- Video Preview Grid -->
+	{% if no_history %}
+		<div style="text-align:center; padding:10px;">No History</div>
+	{% endif %}
+		
+	{% if not no_history %}
+		<div id="video-container" class="video-preview-container channel"></div>
+		<div id="loading" style="text-align:center; padding:10px;">Loading...</div>
+		<script>
+			let offset = 0;
+			let loading = false;
+			let allLoaded = false;
+			let sort = "newest";
+
+			function fetchVideos() {
+				if (loading || allLoaded) return;
+				loading = true;
+				document.getElementById("loading").style.display = "block";
+
+				fetch(`/load_more_history/history?offset=${offset}&sort=${sort}`)
+					.then(res => res.json())
+					.then(data => {
+						if (data.length === 0) {
+							allLoaded = true;
+							document.getElementById("loading").innerText = "No more history.";
+							return;
+						}
+						offset += data.length;
+						const container = document.getElementById("video-container");
+
+						data.forEach(video => {
+							const el = document.createElement("div");
+							el.className = "video-preview";
+							el.innerHTML = `
+								<a href="/${video.uploader_id}/${video.video_id}">
+									<div class="video-preview-top">
+										<img class="video-preview-thumbnail" src="/static/channels/${video.uploader_id}/thumbnails/${video.video_id }.jpg">
+										<span class="video-preview-duration">${video.duration}</span>
+									</div>
+								</a>
+								<div class="video-preview-bottom">
+									<a href="/${video.uploader_id}"><img class="video-preview-channel-icon" src="static/channels/${video.uploader_id}/channel.png"></a>
+									<div class="video-preview-info">
+										<a href="/${video.uploader_id}/${video.video_id}" class="video-preview-title">${video.title}</a>
+										<a href="/${video.uploader_id}" class="video-preview-channel">${video.uploader_id}</a>
+										<a href="/${video.uploader_id}/${video.video_id}" class="video-preview-sub-info">Watch At: ${video.watched_at}</a>
+									</div>
+								</div>
+							`;
+							container.appendChild(el);
+						});
+					})
+					.finally(() => loading = false);
+			}
+
+			window.addEventListener("scroll", () => {
+				if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 300)) {
+					fetchVideos();
+				}
+			});
+
+			document.getElementById("sort-select").addEventListener("change", (e) => {
+				sort = e.target.value;
+				offset = 0;
+				allLoaded = false;
+				document.getElementById("video-container").innerHTML = "";
+				fetchVideos();
+			});
+
+			function allCheck() {
+				if (allLoaded) return;
+				
+				fetch(`/load_more_history/check`)
+					.then(res => res.json())
+					.then(data => { 
+						console.log(data)
+						if (data < 20) {
+							allLoaded = true;
+							document.getElementById("loading").innerText = "No more history.";
+							return;
+						}
+					
+					})
+			}
+			
+			allCheck();
+			fetchVideos();
+		</script>
+	{% endif %}
+{% endblock %}

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NDBTube{% endblock %}</title>
+	<style>
+	:root {
+		--base: {{ colour_css[0] }};
+		--text: {{ colour_css[1] }};
+		--light: {{ colour_css[2] }};
+		--interactive: {{ colour_css[3] }};
+		--extra: {{ colour_css[4] }};
+		--extra1: {{ colour_css[5] }};
+		--extra2: {{ colour_css[6] }};
+		--border: {{ colour_css[7] }};
+		--hover: {{ colour_css[8] }};
+		--shadow: rgba(0,0,0,{{ colour_css[9] }});
+		--icon: {{ colour_css[10] }};
+	}
+	</style>
+    <link rel="stylesheet" href="/static/css/Modern.css">
+</head>
+<body>    
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <button id="menu-button" title="Toggle Menu">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				  <path d="M4 6l16 0" />
+				  <path d="M4 12l16 0" />
+				  <path d="M4 18l16 0" />
+				</svg>
+            </button>
+            <a href="/" class="logo">NDBTube</a>
+        </div>
+        <!-- Desktop search container -->
+		<div class="top-bar-center desktop-only">
+			<div class="search-container">
+				<form action="/search" method="get" class="search-form">
+					<input type="text" name="q" class="search-input" placeholder="Search videos..." required>
+					<button type="submit" class="search-button" title="Search">
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+							<path d="M21 21l-6 -6" />
+						</svg>
+					</button>
+				</form>
+			</div>
+		</div>
+
+
+        <!-- Mobile: search button and settings button -->
+        <div class="top-bar-right">
+            <button class="mobile-search-button top-search mobile-only" title="Search">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+					<path d="M21 21l-6 -6" />
+				</svg>
+            </button>
+            <a href="/settings" class="settings-button" title="Settings">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" />
+					<path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+				</svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- Basic Sidebar (always visible) -->
+    <div class="sidebar basic-sidebar">
+        <a href="/" class="sidebar-item">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M5 12l-2 0l9 -9l9 9l-2 0" />
+				<path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+				<path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+			</svg>
+            <span>Home</span>
+        </a>
+        <a href="/channels" class="sidebar-item">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M19 8.268a2 2 0 0 1 1 1.732v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2v-8a2 2 0 0 1 2 -2h3" />
+				<path d="M5 15.734a2 2 0 0 1 -1 -1.734v-8a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-3" />
+			</svg>
+            <span>Channels</span>
+        </a>
+		{% if rights == "admin" %}
+        <a href="/ChannelManagement" class="sidebar-item">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M4 10a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+				<path d="M6 4v4" />
+				<path d="M6 12v8" />
+				<path d="M10 16a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+				<path d="M12 4v10" />
+				<path d="M12 18v2" />
+				<path d="M16 7a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+				<path d="M18 4v1" />
+				<path d="M18 9v11" />
+			</svg>
+            <span>Manage</span>
+        </a>
+		{% endif %}
+        <a href="/history" class="sidebar-item">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M12 8l0 4l2 2" />
+				<path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5" />
+			</svg>
+            <span>History</span>
+        </a>
+    </div>
+
+    <!-- Advanced Sidebar (hidden by default) -->
+    <div class="sidebar advanced-sidebar" id="advanced-sidebar">
+        <div class="advanced-header">
+            <a href="/" class="logo">NDBTube</a>
+            <button id="close-menu" title="Close Menu">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M18 6l-12 12" />
+					<path d="M6 6l12 12" />
+				</svg>
+            </button>
+        </div>
+        <a href="/" class="sidebar-item">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M5 12l-2 0l9 -9l9 9l-2 0" />
+				<path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+				<path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+			</svg>
+            <span>Home</span>
+        </a>
+        <a href="/channels" class="sidebar-item">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M19 8.268a2 2 0 0 1 1 1.732v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2v-8a2 2 0 0 1 2 -2h3" />
+				<path d="M5 15.734a2 2 0 0 1 -1 -1.734v-8a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-3" />
+			</svg>
+            <span>Channels</span>
+        </a>
+		{% if rights == "admin" %}
+        <a href="/ChannelManagement" class="sidebar-item">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M4 10a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+				<path d="M6 4v4" />
+				<path d="M6 12v8" />
+				<path d="M10 16a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+				<path d="M12 4v10" />
+				<path d="M12 18v2" />
+				<path d="M16 7a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+				<path d="M18 4v1" />
+				<path d="M18 9v11" />
+			</svg>
+            <span>Manage</span>
+        </a>
+		{% endif %}
+        <a href="/history" class="sidebar-item">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M12 8l0 4l2 2" />
+				<path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5" />
+			</svg>
+            <span>History</span>
+        </a>
+        <div class="channels-list">
+            <h3>Quick Access:</h3>
+            {% for channel in channels %}
+                <a class="channel-item" href="/{{ channel.uploader_id }}">
+                    <img src="/static/channels/{{ channel.uploader_id }}/channel.png" alt="{{ channel.uploader }}" class="channel-icon">
+                    <span>{{ channel.uploader }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Overlay for advanced sidebar -->
+    <div id="overlay"></div>
+
+    <!-- Mobile Search Module -->
+	<div id="mobile-search-module" class="mobile-search-module">
+		<div class="mobile-search-container">
+			<form action="/search" method="get" class="mobile-search-form">
+				<input type="text" name="q" class="mobile-search-input" placeholder="Search videos..." required>
+				<button type="submit" class="mobile-search-button" title="Search">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+							<path d="M21 21l-6 -6" />
+						</svg>
+				</button>
+			</form>
+			<button class="mobile-search-close" title="Close Search">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M18 6l-12 12" />
+					<path d="M6 6l12 12" />
+				</svg>
+			</button>
+		</div>
+	</div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+		{% if channels == [] and not on_channel_management %}
+			<div class="no_channels_banner">
+				<span>No Channels downloaded. Go to <a href="/ChannelManagement">Channel Management</a> to download one.</span>
+			</div>
+		{% endif %}
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var menuButton = document.getElementById('menu-button');
+            var advancedSidebar = document.getElementById('advanced-sidebar');
+            var closeButton = document.getElementById('close-menu');
+            var overlay = document.getElementById('overlay');
+            var mobileSearchButton = document.querySelector('.mobile-search-button.top-search');
+            var mobileSearchModule = document.getElementById('mobile-search-module');
+            var mobileSearchClose = document.querySelector('.mobile-search-close');
+
+            // Open the advanced sidebar
+            menuButton.addEventListener('click', function() {
+                advancedSidebar.classList.add('open');
+                overlay.classList.add('open');
+            });
+
+            // Close advanced sidebar via close button
+            closeButton.addEventListener('click', function() {
+                advancedSidebar.classList.remove('open');
+                overlay.classList.remove('open');
+            });
+
+            // Close advanced sidebar when clicking the overlay
+            overlay.addEventListener('click', function() {
+                advancedSidebar.classList.remove('open');
+                overlay.classList.remove('open');
+            });
+
+            // Mobile search: clicking the mobile search button opens the modal
+            mobileSearchButton.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    mobileSearchModule.classList.add('open');
+                }
+            });
+
+            // Close the mobile search modal
+            mobileSearchClose.addEventListener('click', function() {
+                mobileSearchModule.classList.remove('open');
+            });
+            mobileSearchModule.addEventListener('click', function(e) {
+                if (e.target === mobileSearchModule) {
+                    mobileSearchModule.classList.remove('open');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

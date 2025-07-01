@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>NDBTube</title>
+		<style>
+			body {
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				height: 100vh;
+				font-family: Arial, sans-serif;
+				margin: 0;
+				padding: 0;
+				background-color: #121212;
+				color: #FFF;
+				background: linear-gradient(135deg, #293f53, #1f2a34);
+			}
+			
+			.login-container {
+				width: 200px;
+				margin: 10px auto;
+				padding: 20px;
+				background-color: #0C0C0C;
+				border: 2px solid #262626;
+				border-radius: 20px;
+			}
+			
+			h2 {
+				text-align: center;
+			}
+			
+			.modp {
+				font-weight: bold;
+				margin: 5px 2px 2px;
+				font-size: 18px;
+			}
+			
+			.login-box {
+				padding: 5px 0;
+			}
+			
+			.login-box input {
+				width: 100%;
+				height: 34px;
+				padding: 5px 8px;
+				color: #FFF;
+				background-color: #0C0C0C;
+				border: 2px solid #262626;
+				border-radius: 20px;
+				margin-top: 5px;
+				box-sizing: border-box;
+			}
+			
+			.access-box {
+				padding: 5px 0;
+			}
+			
+			.access-option {
+				display: block;
+				width: 100%;
+				padding: 5px;
+				color: #FFF;
+				background-color: #0C0C0C;
+				border: 2px solid #262626;
+				border-radius: 20px;
+				margin-top: 5px;
+				box-sizing: border-box;
+				font-size: 14px;
+			}
+			
+			.error {
+				text-align: center;
+				margin: 5px 0;
+				font-size: 14px;
+				color: #e50000;
+			}
+			
+			button {
+				width: 100%;
+				padding: 5px;
+				color: #FFF;
+				background-color: #0C0C0C;
+				border: 2px solid #262626;
+				border-radius: 20px;
+			}
+			
+		</style>
+	</head>
+	<body>
+		<div class="login-container">
+			<h2>NDBTube</h2>
+			<form method="POST">
+				<div class="login-box">
+					<p class="modp">Login:</p>
+					<input type="text" name="username" placeholder="Username" required><br>
+					<input type="password" name="password" placeholder="Password" required>
+				</div>
+				<div class="access-box">
+					<p class="modp">Access Type:</p>
+					<select name="access" class="access-option">
+						<option value="default">Default</option>
+						<option value="legacy">Legacy</option>
+						<option value="modern">Modern</option>
+					</select>
+				</div>
+				{% if error %}
+					<p class="error">{{ error }}</p>
+				{% endif %}
+				<button type="submit">Login</button>
+			</form>
+		</div>
+	</body>
+</html>

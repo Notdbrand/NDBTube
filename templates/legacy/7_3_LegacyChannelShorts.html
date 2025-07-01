@@ -1,0 +1,70 @@
+{% extends "legacy/7_0_LegacyChannelBase.html" %}
+
+{% block title %}{{ channel }} - Shorts{% endblock %}
+
+{% block content %}
+	<!-- Channel Navigation Buttons -->
+	<div class="channel-page-nav">
+		<button onclick="window.location.href='/{{ channel_info.uploader_id }}'">Home</button>
+		{% if "videos" in channel_info.downloaded_sections %}
+			<button onclick="window.location.href='/{{ channel_info.uploader_id }}/videos'">Videos</button>
+		{% endif %}
+		{% if "shorts" in channel_info.downloaded_sections %}
+			<button class="active-tab" onclick="window.location.href='/{{ channel_info.uploader_id }}/shorts'">Shorts</button>
+		{% endif %}
+		{% if "streams" in channel_info.downloaded_sections %}
+			<button onclick="window.location.href='/{{ channel_info.uploader_id }}/streams'">Streams</button>
+		{% endif %}
+		
+		{% if "playlists" in channel_info.downloaded_sections %}
+			<button onclick="window.location.href='/{{ channel_info.uploader_id }}/playlists'">Playlists</button>
+		{% endif %}
+		<button onclick="window.location.href='/{{ channel_info.uploader_id }}/about'">About</button>
+	</div>
+
+	<!-- Sorting Dropdown -->
+	<div class="channel-page-sort">
+		<form action="" method="get" id="sortForm">
+			<label for="sort">Sort by:</label>
+			<select name="sort" id="sort" onchange="document.getElementById('sortForm').submit();">
+				<option value="newest" {% if sort_by == "newest" %}selected{% endif %}>Newest</option>
+				<option value="oldest" {% if sort_by == "oldest" %}selected{% endif %}>Oldest</option>
+				<option value="popular" {% if sort_by == "popular" %}selected{% endif %}>Most Popular</option>
+				<option value="leastpopular" {% if sort_by == "leastpopular" %}selected{% endif %}>Least Popular</option>
+			</select>
+		</form>
+	</div>
+	
+	<!-- Video Preview Grid -->
+	<div class="video-grid">
+		{% for video in videos %}
+			{% if loop.index % 3 == 1 %}
+				<div class="video-row clearfix">
+					{% endif %}
+						<a href="/{{ video.uploader_id }}/{{ video.video_id }}">
+							<div class="video-preview">
+								<img class="video-thumbnail" src="/{{ video.thumbnail_location }}" alt="{{ video.title }}">
+								<p>{{ video.duration }}</p>
+								<div class="video-title">{{ video.title }}</div>
+								<div class="video-meta">
+									<span>{{ video.views[1] }} views</span> &bull; <span>{{ video.uploaddate }}</span>
+								</div>
+							</div>
+						</a>
+					{% if loop.index % 3 == 0 or loop.last %}
+				</div>
+			{% endif %}
+		{% endfor %}
+	</div>
+	
+	<!-- Page Controls -->
+	<div class="channel-page-select-box">
+		{% if page > 1 %}
+			<a href="?sort={{ sort_by }}&page={{ page - 1 }}">Previous</a>
+		{% endif %}
+		<span>Page {{ page }} of {{ total_pages }}</span>
+		{% if page < total_pages %}
+			<a href="?sort={{ sort_by }}&page={{ page + 1 }}">Next</a>
+		{% endif %}
+	</div>
+{% endblock %}

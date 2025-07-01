@@ -1,0 +1,103 @@
+{% extends "modern/7_0_ChannelBase.html" %}
+
+{% block title %}{{ channel_info.uploader }} - Playlists{% endblock %}
+
+{% block content %}
+	<div class="channel-page-section-selector">
+		<a class="section-selector-button" href="/{{ channel_info.uploader_id }}">Home</a>
+		
+		{% if "videos" in channel_info.downloaded_sections %}
+			<a class="section-selector-button" href="/{{ channel_info.uploader_id }}/videos">Videos</a>
+		{% endif %}
+		
+		{% if "shorts" in channel_info.downloaded_sections %}
+			<a class="section-selector-button" href="/{{ channel_info.uploader_id }}/shorts">Shorts</a>
+		{% endif %}
+		
+		{% if "streams" in channel_info.downloaded_sections %}
+			<a class="section-selector-button" href="/{{ channel_info.uploader_id }}/streams">Streams</a>
+		{% endif %}
+		
+		{% if "playlists" in channel_info.downloaded_sections %}
+			<a class="section-selector-button current" href="/{{ channel_info.uploader_id }}/playlists">Playlists</a>
+		{% endif %}
+		
+		<a class="section-selector-button" href="/{{ channel_info.uploader_id }}/about">About</a>
+	</div>
+	<div class="channel-page-content">
+		<div class="channel-page-preview-header">
+			Playlists:
+		</div>
+		<div id="video-container" class="video-preview-container channel"></div>
+		<div id="loading" style="text-align:center; padding:10px;">Loading...</div>
+	</div>
+	<script>
+		const channelId = "{{ channel_info.uploader_id }}";
+		let offset = 0;
+		let loading = false;
+		let allLoaded = false;
+
+		function fetchVideos() {
+			if (loading || allLoaded) return;
+			loading = true;
+			document.getElementById("loading").style.display = "block";
+
+			fetch(`/load_more_content/${channelId}/playlists?offset=${offset}`)
+				.then(res => res.json())
+				.then(data => {
+					if (data.length === 0) {
+						allLoaded = true;
+						document.getElementById("loading").innerText = "No more playlists.";
+						return;
+					}
+					offset += data.length;
+					const container = document.getElementById("video-container");
+
+					data.forEach(playlist => {
+						const el = document.createElement("div");
+						el.className = "video-preview";
+						el.innerHTML = `
+							<a href="/${channelId}/playlist/${playlist.playlist_id}">
+								<div class="video-preview-top">
+									<img class="video-preview-thumbnail" src="/static/channels/${channelId}/thumbnails/${playlist.videos[0].video_id}.jpg">
+									<span class="video-preview-duration">${playlist.amount} videos</span>
+								</div>
+							</a>
+							<div class="video-preview-bottom channel">
+								<div class="video-preview-info">
+									<a href="/${channelId}/playlist/${playlist.playlist_id}" class="video-preview-title">${playlist.title}</a>
+								</div>
+							</div>
+						`;
+						container.appendChild(el);
+					});
+				})
+				.finally(() => loading = false);
+		}
+
+		window.addEventListener("scroll", () => {
+			if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 300)) {
+				fetchVideos();
+			}
+		});
+		
+		function allCheck() {
+			if (allLoaded) return;
+			
+			fetch(`/check/${channelId}/playlists`)
+				.then(res => res.json())
+				.then(data => { 
+					console.log(data)
+					if (data < 20) {
+						allLoaded = true;
+						document.getElementById("loading").innerText = "No more playlists.";
+						return;
+					}
+				
+				})
+		}
+		
+		fetchVideos();
+		allCheck();
+	</script>
+{% endblock %}

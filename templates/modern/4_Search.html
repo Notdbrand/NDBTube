@@ -1,0 +1,86 @@
+{% extends "modern/1_Base.html" %}
+
+{% block title %}NDBTube - Search{% endblock %}
+
+{% block content %}
+	<div class="channel-page-content">
+		<div class="channel-page-preview-header">
+			Search Results for "{{ query }}"
+		</div>
+		<div id="video-container" class="video-preview-container channel"></div>
+		<div id="loading" style="text-align:center; padding:10px;">Loading...</div>
+	</div>
+	
+	<script>
+		const query = "{{ query }}";
+		let offset = 0;
+		let loading = false;
+		let allLoaded = false;
+
+		function fetchVideos() {
+			if (loading || allLoaded) return;
+			loading = true;
+			document.getElementById("loading").style.display = "block";
+
+			fetch(`/load_more_searches/searches?offset=${offset}&query=${query}`)
+				.then(res => res.json())
+				.then(data => {
+					if (data.length === 0) {
+						allLoaded = true;
+						document.getElementById("loading").innerText = "No more videos.";
+						return;
+					}
+					offset += data.length;
+					const container = document.getElementById("video-container");
+
+					data.forEach(video => {
+						const el = document.createElement("div");
+						el.className = "video-preview";
+						el.innerHTML = `
+							<a href="/${video.uploader_id}/${video.video_id}">
+								<div class="video-preview-top">
+									<img class="video-preview-thumbnail" src="/${video.thumbnail_location}">
+									<span class="video-preview-duration">${video.duration}</span>
+								</div>
+							</a>
+							<div class="video-preview-bottom channel">
+								<a href="/${video.uploader_id}"><img class="video-preview-channel-icon" src="static/channels/${video.uploader_id}/channel.png"></a>
+								<div class="video-preview-info">
+									<a href="/${video.uploader_id}/${video.video_id}" class="video-preview-title">${video.title}</a>
+									<a href="/${video.uploader_id}" class="video-preview-channel">${video.uploader}</a>
+									<a href="/${video.uploader_id}/${video.video_id}" class="video-preview-sub-info">${video.views[1]} views • ${video.uploaddate}</a>
+								</div>
+							</div>
+						`;
+						container.appendChild(el);
+					});
+				})
+				.finally(() => loading = false);
+		}
+
+		window.addEventListener("scroll", () => {
+			if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 300)) {
+				fetchVideos();
+			}
+		});
+
+		function allCheck() {
+			if (allLoaded) return;
+			
+			fetch(`/load_more_searches/check?query=${query}`)
+				.then(res => res.json())
+				.then(data => { 
+					console.log(data)
+					if (data < 20) {
+						allLoaded = true;
+						document.getElementById("loading").innerText = "No more videos.";
+						return;
+					}
+				
+				})
+		}
+		
+		allCheck();
+		fetchVideos();
+	</script>
+{% endblock %}

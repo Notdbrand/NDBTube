@@ -1,0 +1,368 @@
+{% extends "modern/1_Base.html" %}
+
+{% block title %}NDBTube - Channel Management{% endblock %}
+
+{% block content %}
+	<!-- Status keeper. The keeper of status! -->
+	<div class="settings-header">
+		<p>Channel download/update status:</p>
+	</div>
+	<div class="settings-panel">
+		<div id="global-update-status">Idle</div>
+	</div>
+	
+	<!-- Channel Download Interface -->
+	<div class="settings-header">
+		<p>Download Channel:</p>
+	</div>
+	<div class="settings-panel management">
+		<p>Enter the url of the Youtube channel you want to archive then select (if available) to download the channels videos, shorts, and streams. Then press download.</p>
+		<form class="download-panel-form" id="download-form">
+			<div class="channel-download-inputs">
+				<input class="channel-download-url" type="url" id="channel-url" name="channel_url" placeholder="Enter YouTube Channel URL" required>
+				<div class="channel-download-options">
+					<label>
+						<input type="checkbox" id="videos-checkbox" name="include_videos">
+						Videos
+					</label>
+					<label>
+						<input type="checkbox" id="shorts-checkbox" name="include_shorts">
+						Shorts
+					</label>
+					<label>
+						<input type="checkbox" id="streams-checkbox" name="include_streams">
+						Streams
+					</label>
+				</div>
+			</div>
+			<button type="submit" class="settings-page-apply-button">Download</button>
+		</form>
+	</div>
+
+	{% if channels != [] %}
+	<!-- Update Selected and Update All -->
+	<div class="settings-header">
+		<p>Manage Channels:</p>
+	</div>
+	<div class="settings-panel management">
+		<table class="channel-management-table">
+			<tr>
+				<th>Update</th>
+				<th>Channel</th>
+				<th class="channel-preferences-box">Videos</th>
+				<th class="channel-preferences-box">Shorts</th>
+				<th class="channel-preferences-box">Streams</th>
+				<th class="last-checked">Last Checked</th>
+			</tr>
+			{% for channel in channels %}
+				<tr>
+					<td><input type="checkbox" class="update-channel-checkbox" data-url="{{ channel.channel_URL }}" data-uploader="{{ channel.uploader_id }}"></td>
+					<td class="manage-channel-name"><a href="/{{ channel.uploader_id }}">{{ channel.uploader }}</a></td>
+					<td class="channel-preferences-box"><input type="checkbox" id="videos-checkbox" name="include_videos" {% if "videos" in channel.to_download_sections %} checked {% endif %}></td>
+					<td class="channel-preferences-box"><input type="checkbox" id="shorts-checkbox" name="include_shorts" {% if "shorts" in channel.to_download_sections %} checked {% endif %}></td>
+					<td class="channel-preferences-box"><input type="checkbox" id="streams-checkbox" name="include_streams" {% if "streams" in channel.to_download_sections %} checked {% endif %}></td>
+					<td class="last-checked">{{ channel.last_checked }}</td>
+				</tr>
+			{% endfor %}
+		</table>
+		<div class="update-buttons">
+			<div class="balls manage">
+				<label for="update_type">Update Type:</label>
+				<select name="update_type" id="update_type">
+					<option value="False">Full Update</option>
+					<option value="True">Quick Update</option>
+				</select>
+			</div>
+			<button type="button" id="update-selected" class="settings-page-apply-button">Update Selected</button>
+			<button type="button" id="update-all" class="settings-page-apply-button">Update All</button>
+			<button type="button" id="update-preferences" class="settings-page-apply-button">Save Preferences</button>
+			<button type="button" id="toggle-preferences" class="settings-page-apply-button toggle-preferences">Show Preferences</button>
+		</div>
+		<p style="font-weight:bold;margin-top:10px;">Updating Channels:</p>
+		<p>Select the checkboxes for the channels you want updated then press 'Update Selected' or 'Update All' to update all channels. If the videos you want to save are already in the channel's video folder with the video ID as the filename, it won't redownload the video.</p>
+		<p style="font-weight:bold">Update Type:</p>
+		<p>'Full Update' means that every video from the download sections will be rescanned to aquire the most up to date stats as well as download new videos. 'Quick Update' only downloads new videos are leaves existing video stats.</p>
+		<p style="font-weight:bold">Save Preferences:</p>
+		<p>Select which sections of all the channel you want to update in the future with the checkboxes and press 'Save Preferences'.</p>
+	</div>
+	
+	<!-- Delete Channel -->
+	<div class="settings-header">
+		<p>Delete Channel:</p>
+	</div>
+	<div class="settings-panel management">
+		<form class="settings-panel-form" id="delete-form">
+			<div class="balls">
+				<label for="channel_delete">Channel to Delete:</label>
+				<select name="channel_delete" id="channel_delete">
+				<option uploader_id="Select a Channel" uploader="Select a Channel">Select a Channel</option>
+					{% for channel in channels %}
+						<option uploader_id="{{ channel.uploader_id }}" uploader="{{ channel.uploader }}">{{ channel.uploader }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="balls">
+				<label for="confirm">Confirm:</label>
+				<input type="text" id="confirm" name="confirm" placeholder="Enter channel name to confirm.">
+			</div>
+			<button type="submit" class="settings-page-apply-button">Delete</button>
+		</form>
+	</div>
+	
+	<!-- Show/hide preferences cells toggle -->
+	<script>
+		document.addEventListener("DOMContentLoaded", function () {
+			const toggleButton = document.getElementById("toggle-preferences");
+			const preferenceCells = document.querySelectorAll(".channel-preferences-box");
+
+			let preferencesVisible = false;
+
+			toggleButton.addEventListener("click", function () {
+				preferencesVisible = !preferencesVisible;
+
+				preferenceCells.forEach(cell => {
+					cell.style.display = preferencesVisible ? "table-cell" : "none";
+				});
+
+				toggleButton.textContent = preferencesVisible ? "Hide Preferences" : "Show Preferences";
+			});
+		});
+	</script>
+	
+	<!-- Save channel preferences -->
+	<script>
+		document.getElementById('update-preferences').addEventListener('click', function () {
+			var rows = document.querySelectorAll('table tr');
+			var prefs = [];
+
+			for (var i = 1; i < rows.length; i++) {
+				var row = rows[i];
+				var url = row.querySelector('.update-channel-checkbox').getAttribute('data-url');
+				var uploader = row.querySelector('.manage-channel-name').textContent.replace(/^\s+|\s+$/g, '');
+				var include_videos = row.querySelector('input[name="include_videos"]').checked;
+				var include_shorts = row.querySelector('input[name="include_shorts"]').checked;
+				var include_streams = row.querySelector('input[name="include_streams"]').checked;
+
+				var sections = [];
+				if (include_videos) sections.push('Videos');
+				if (include_shorts) sections.push('Shorts');
+				if (include_streams) sections.push('Streams');
+
+				prefs.push({
+					channel_URL: url,
+					uploader: uploader,
+					to_download_sections: sections
+				});
+			}
+
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', '/ChannelManagement/save_prefs', true);
+			xhr.setRequestHeader('Content-Type', 'application/json');
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 4) {
+					try {
+						var data = JSON.parse(xhr.responseText);
+						if (data.success) {
+							alert('Preferences saved!');
+						} else {
+							alert('Error saving preferences');
+						}
+					} catch (e) {
+						alert('Invalid server response');
+					}
+				}
+			};
+			xhr.send(JSON.stringify({ prefs: prefs }));
+		});
+	</script>
+	
+	<!-- Update Selected -->
+	<script>
+		document.getElementById('update-selected').addEventListener('click', function () {
+			var update_type = document.getElementById('update_type').value;
+			var selectedUploaderIds = [update_type];
+
+			var checkboxes = document.querySelectorAll('.update-channel-checkbox');
+			checkboxes.forEach(function (checkbox) {
+				if (checkbox.checked) {
+					var uploaderId = checkbox.getAttribute('data-uploader');
+					if (uploaderId) {
+						selectedUploaderIds.push(uploaderId);
+					}
+				}
+			});
+
+			if (selectedUploaderIds.length === 0) {
+				alert('No channels selected.');
+				return;
+			}
+
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', '/ChannelManagement/UpdateSelected', true);
+			xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 4) {
+					try {
+						var data = JSON.parse(xhr.responseText);
+						if (data.success) {
+							alert('Update started for selected channels.');
+						} else {
+							alert('Update failed: ' + data.error);
+						}
+					} catch (err) {
+						alert('Unexpected server response.');
+					}
+				}
+			};
+
+			xhr.send(JSON.stringify(selectedUploaderIds));
+		});
+	</script>
+	
+	<!-- Update All -->
+	<script>
+		document.getElementById('update-all').addEventListener('click', function () {
+			var update_type = document.getElementById('update_type').value;
+			var allUploaderIds = [update_type];
+
+			var checkboxes = document.querySelectorAll('.update-channel-checkbox');
+			checkboxes.forEach(function (checkbox) {
+				var uploaderId = checkbox.getAttribute('data-uploader');
+				if (uploaderId) {
+					allUploaderIds.push(uploaderId);
+				}
+			});
+
+			if (allUploaderIds.length === 0) {
+				alert('No channels found.');
+				return;
+			}
+
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', '/ChannelManagement/UpdateAll', true);
+			xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 4) {
+					try {
+						var data = JSON.parse(xhr.responseText);
+						if (data.success) {
+							alert('Update started for all channels.');
+						} else {
+							alert('Update failed: ' + data.error);
+						}
+					} catch (err) {
+						alert('Unexpected server response.');
+					}
+				}
+			};
+
+			xhr.send(JSON.stringify(allUploaderIds));
+		});
+	</script>
+
+	<!-- Remove Channel Request -->
+	<script>
+		document.getElementById('delete-form').addEventListener('submit', function (e) {
+			e.preventDefault();
+
+			var select = document.getElementById('channel_delete');
+			var selectedOption = select.selectedOptions[0];
+
+			var uploader = selectedOption.getAttribute('uploader');
+			var uploader_id = selectedOption.getAttribute('uploader_id');
+			var confirm = document.getElementById('confirm').value;
+
+			var payload = [
+				{
+					uploader: uploader,
+					uploader_id: uploader_id,
+					confirm: confirm
+				}
+			];
+
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', '/ChannelManagement/Delete', true);
+			xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 4) {
+					try {
+						var data = JSON.parse(xhr.responseText);
+						if (data.success) {
+							alert('Channel Deleted');
+						} else {
+							alert('Deletion failed: ' + data.error);
+						}
+					} catch (err) {
+						alert('Unexpected server response.');
+					}
+				}
+			};
+			xhr.send(JSON.stringify(payload));
+		});
+	</script>
+	{% endif %}
+	
+	<!-- Periodic Status Checker -->
+	<script>
+		function checkStatus() {
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', '/ChannelManagement/Status', true);
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 4 && xhr.status === 200) {
+					try {
+						var data = JSON.parse(xhr.responseText);
+						if (data.status) {
+							document.getElementById('global-update-status').textContent = data.status;
+						}
+					} catch (e) {
+						console.error('Invalid status response');
+					}
+				}
+			};
+			xhr.send();
+		}
+		setInterval(checkStatus, 5000);
+		checkStatus();
+	</script>
+	
+	<!-- Single Download Request -->
+	<script>
+		document.getElementById('download-form').addEventListener('submit', function (e) {
+			e.preventDefault();
+
+			var channelURL = document.getElementById('channel-url').value;
+			var includeVideos = document.getElementById('videos-checkbox').checked;
+			var includeShorts = document.getElementById('shorts-checkbox').checked;
+			var includeStreams = document.getElementById('streams-checkbox').checked;
+
+			var payload = [
+				{
+					channel_url: channelURL,
+					include_videos: includeVideos,
+					include_shorts: includeShorts,
+					include_streams: includeStreams
+				}
+			];
+
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', '/ChannelManagement/SingleDownload', true);
+			xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 4) {
+					try {
+						var data = JSON.parse(xhr.responseText);
+						if (data.success) {
+							alert('Download Started');
+						} else {
+							alert('Download failed: ' + data.error);
+						}
+					} catch (err) {
+						alert('Unexpected server response.');
+					}
+				}
+			};
+			xhr.send(JSON.stringify(payload));
+		});
+	</script>
+	
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "modern/7_0_ChannelBase.html" %}
+
+{% block title %}{{ channel_info.uploader }} - Home{% endblock %}
+
+{% block content %}
+	<div class="channel-page-section-selector">
+		<a class="section-selector-button current" href="/{{ channel_info.uploader_id }}">Home</a>
+		
+		{% if "videos" in channel_info.downloaded_sections %}
+			<a class="section-selector-button" href="/{{ channel_info.uploader_id }}/videos">Videos</a>
+		{% endif %}
+		
+		{% if "shorts" in channel_info.downloaded_sections %}
+			<a class="section-selector-button" href="/{{ channel_info.uploader_id }}/shorts">Shorts</a>
+		{% endif %}
+		
+		{% if "streams" in channel_info.downloaded_sections %}
+			<a class="section-selector-button" href="/{{ channel_info.uploader_id }}/streams">Streams</a>
+		{% endif %}
+		
+		{% if "playlists" in channel_info.downloaded_sections %}
+			<a class="section-selector-button" href="/{{ channel_info.uploader_id }}/playlists">Playlists</a>
+		{% endif %}
+		
+		<a class="section-selector-button" href="/{{ channel_info.uploader_id }}/about">About</a>
+	</div>
+	<div class="channel-page-content">
+		<div class="channel-page-preview-header">
+			Latest:
+		</div>
+		<div class="channel-page-video-preview-container">
+			{% for video in recent_videos %}
+				<div class="channel-page-video-preview">
+					<a href="/{{ video.uploader_id }}/{{ video.video_id }}">
+						<div class="video-preview-top">
+							<img class="video-preview-thumbnail" src="{{ video.thumbnail_location }}">
+							<span class="video-preview-duration">{{ video.duration }}</span>
+						</div>
+					</a>
+					<div class="video-preview-bottom channel">
+						<div class="video-preview-info">
+							<a href="/{{ video.uploader_id }}/{{ video.video_id }}" class="video-preview-title">{{ video.title }}</a>
+							<a href="/{{ video.uploader_id }}/{{ video.video_id }}" class="video-preview-sub-info">{{ video.views[1] }} views • {{ video.uploaddate }}</a>
+						</div>
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+		<div class="channel-page-preview-header">
+			Random Videos:
+		</div>
+		<div class="channel-page-video-preview-container">
+			{% for video in random_videos %}
+				<div class="channel-page-video-preview">
+					<a href="/{{ video.uploader_id }}/{{ video.video_id }}">
+						<div class="video-preview-top">
+							<img class="video-preview-thumbnail" src="{{ video.thumbnail_location }}">
+							<span class="video-preview-duration">{{ video.duration }}</span>
+						</div>
+					</a>
+					<div class="video-preview-bottom channel">
+						<div class="video-preview-info">
+							<a href="/{{ video.uploader_id }}/{{ video.video_id }}" class="video-preview-title">{{ video.title }}</a>
+							<a href="/{{ video.uploader_id }}/{{ video.video_id }}" class="video-preview-sub-info">{{ video.views[1] }} views • {{ video.uploaddate }}</a>
+						</div>
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+	</div>
+{% endblock %}

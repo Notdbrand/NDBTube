@@ -1,0 +1,265 @@
+{% extends "modern/1_Base.html" %}
+
+{% block title %}NDBTube - Settings{% endblock %}
+
+{% block content %}
+    <!-- Account Information -->
+	<div class="settings-header">
+		<p>Account</p>
+		{% if rights == "admin" %}
+			<a href="/AccountManagement" class="settings-page-button">Manage Accounts</a>
+		{% endif %}
+	</div>
+	<div class="settings-panel">
+		<p>Logged in as: {{ username }}</p>
+		<p>
+			{% if 'user' in session %}
+				<a href="{{ url_for('logout') }}" class="settings-page-button">Logout</a>
+			{% endif %}
+		</p>
+	</div>
+	
+	<!-- Settings -->
+	<div class="settings-header">
+		<p>Settings</p>
+	</div>
+	<div class="settings-panel">
+		<div class="settings-panel-form">
+			<div class="balls"> <!-- Good job reviewing code! -->
+				<label for="access_type">Access Type:</label>
+				<select name="access_type" id="access_type">
+					<option value="legacy" {% if current_access == "legacy" %}selected{% endif %}>Legacy</option>
+					<option value="modern" {% if current_access == "modern" %}selected{% endif %}>Modern</option>
+				</select>
+			</div>
+			<div class="balls">
+				<label for="modern_theme">Theme:</label>
+				<select name="modern_theme" id="modern_theme">
+					<option value="light" {% if current_theme == "light" %}selected{% endif %}>Light Theme</option>
+					<option value="dark" {% if current_theme == "dark" %}selected{% endif %}>Dark Theme</option>
+					<option value="custom" {% if current_theme == "custom" %}selected{% endif %}>User Theme</option>
+				</select>
+			</div>
+			<button type="button" onclick="applySettings()" class="settings-page-apply-button">Apply</button>
+		</div>
+	</div>
+	
+	{% if current_theme == "custom" %}
+		<div class="settings-header">
+			<p>Theme Editor:</p>
+		</div>
+		<div class="settings-panel channels">
+			<div class="colour-select">
+				<label for="base">Base Colour:</label>
+				<input type="color" id="base" name="base" value="{{ custom_colour_css[0] }}">
+			</div>
+			<div class="colour-select">
+				<label for="light_base">Lighter Base Colour:</label>
+				<input type="color" id="light_base" name="light_base" value="{{ custom_colour_css[2] }}">
+			</div>
+			<div class="colour-select">
+				<label for="interactive">Interactive Colour:</label>
+				<input type="color" id="interactive" name="interactive" value="{{ custom_colour_css[3] }}">
+			</div>
+			<div class="colour-select">
+				<label for="border">Border Colour:</label>
+				<input type="color" id="border" name="border" value="{{ custom_colour_css[7] }}">
+			</div>
+			<div class="colour-select">
+				<label for="hover">Hover Colour:</label>
+				<input type="color" id="hover" name="hover" value="{{ custom_colour_css[8] }}">
+			</div>
+			<div class="colour-select">
+				<label for="shadow">Shadow:</label>
+				<input type="range" id="shadow" name="shadow" min="0" max="1" step="0.1" value="{{ custom_colour_css[9] }}">
+			</div>
+			<div class="colour-select">
+				<label for="text">Text Colour:</label>
+				<input type="color" id="text" name="text" value="{{ custom_colour_css[1] }}">
+			</div>
+			<div class="colour-select">
+				<label for="icon">Icon Colour:</label>
+				<input type="color" id="icon" name="icon" value="{{ custom_colour_css[10] }}">
+			</div>
+			<button type="button" onclick="saveCustomTheme()" class="settings-page-apply-button">Save</button>
+			
+		</div>
+	{% endif %}
+	
+	<!-- Change Password -->
+	<div class="settings-header">
+		<p>Change Password</p>
+	</div>
+	<div class="settings-panel management">
+		<div class="settings-panel-form">
+			<div class="balls">
+				<label for="current">Current Password:</label>
+				<input type="password" id="current" name="current">
+			</div>
+			<div class="balls">
+				<label for="new">New Password:</label>
+				<input type="password" id="new" name="new">
+			</div>
+			<div class="balls">
+				<label for="confirm">Confirm Password:</label>
+				<input type="password" id="confirm" name="confirm">
+			</div>
+			<button type="button" onclick="savePassword()" class="settings-page-apply-button">Save</button>
+		</div>
+	</div>
+	
+	{% if rights == "admin" %}
+	<!-- Channel Management -->
+	<div class="settings-header">
+		<p>Channels</p>
+		<a href="/ChannelManagement" class="settings-page-button">Manage Channels</a>
+	</div>
+	<div class="settings-panel channels">
+		<p>Total Channels: {{ total_Channels }}</p>
+		<p>Total Videos: {{ total_Videos }}</p>
+	</div>
+	
+	<!-- Manage Download Settings -->
+	<div class="settings-header">
+		<p>Download Settings</p>
+	</div>
+	<div class="settings-panel management">
+		<div class="settings-panel-form">
+			<div class="balls">
+				<label for="resolution">Resolution:</label>
+				<input type="text" id="resolution" name="resolution" value="{{ settings.video_quality['resolution'] }}">
+			</div>
+			<div class="balls">
+				<label for="fps">Framerate:</label>
+				<input type="text" id="fps" name="fps" value="{{ settings.video_quality['fps'] }}">
+			</div>
+			<button type="button" onclick="saveDownloadSettings()" class="settings-page-apply-button">Save</button>
+		</div>
+	</div>
+	
+	<!-- Shutdown -->
+	<div class="settings-header">
+		<p>Server Controls</p>
+	</div>
+	<div class="settings-panel">
+		<form method="POST" action="/shutdown" class="settings-panel-form">
+			<button type="submit" class="settings-page-apply-button">Shutdown</button>
+		</form>
+	</div>
+	{% endif %}
+	
+	<script>
+		document.addEventListener("DOMContentLoaded", function () {
+			if ("{{ current_theme }}" === "custom") {
+				const root = document.documentElement;
+				const colorInputs = {
+				base: '--base',
+				light_base: '--light',
+				interactive: '--interactive',
+				border: '--border',
+				hover: '--hover',
+				text: '--text',
+				shadow: '--shadow',
+				icon: '--icon'
+				};
+				for (const [id, cssVar] of Object.entries(colorInputs)) {
+					const input = document.getElementById(id);
+					if (input) {
+						if (id === 'shadow') {
+							root.style.setProperty('--shadow', `rgba(0, 0, 0, ${input.value})`);
+						} else {
+							root.style.setProperty(cssVar, input.value);
+						}
+
+						input.addEventListener('input', () => {
+							if (id === 'shadow') {
+								root.style.setProperty('--shadow', `rgba(0, 0, 0, ${input.value})`);
+							} else {
+								root.style.setProperty(cssVar, input.value);
+							}
+						});
+					}
+				}
+			}
+		});
+		
+		function saveDownloadSettings() {
+			const payload = {
+				resolution: document.getElementById("resolution").value,
+				fps: document.getElementById("fps").value
+			};
+
+			fetch("/api/settings/save_download_settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload)
+			}).then(res => {
+				if (res.ok) location.reload();
+			});
+		}
+		
+		function applySettings() {
+			const payload = {
+				access_type: document.getElementById("access_type").value,
+				modern_theme: document.getElementById("modern_theme").value
+			};
+
+			fetch("/api/settings/apply", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload)
+			}).then(res => {
+				if (res.ok) location.reload();
+			});
+		}
+
+		function saveCustomTheme() {
+			const payload = {
+				access_type: document.getElementById("access_type").value,
+				modern_theme: "custom",
+				base: document.getElementById("base").value,
+				text: document.getElementById("text").value,
+				light_base: document.getElementById("light_base").value,
+				interactive: document.getElementById("interactive").value,
+				border: document.getElementById("border").value,
+				hover: document.getElementById("hover").value,
+				shadow: document.getElementById("shadow").value,
+				icon: document.getElementById("icon").value
+			};
+
+			fetch("/api/settings/save_theme", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload)
+			}).then(res => {
+				if (res.ok) location.reload();
+			});
+		}
+		
+		function savePassword() {
+			const payload = {
+				username: "{{ username }}",
+				current_password: document.getElementById("current").value,
+				new_password: document.getElementById("new").value,
+				confirm_password: document.getElementById("confirm").value
+			};
+
+			fetch('/api/settings/password', {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload)
+			})
+			.then(async res => {
+				if (res.ok) {
+					location.reload();
+				} else {
+					const data = await res.json();
+					throw new Error(data.message || "Failed to change password.");
+				}
+			})
+			.catch(err => alert("Error: " + err.message));
+		}
+	</script>
+
+
+{% endblock %}

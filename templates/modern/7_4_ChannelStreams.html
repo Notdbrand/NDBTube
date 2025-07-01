@@ -1,0 +1,122 @@
+{% extends "modern/7_0_ChannelBase.html" %}
+
+{% block title %}{{ channel_info.uploader }} - Streams{% endblock %}
+
+{% block content %}
+	<div class="channel-page-section-selector">
+		<a class="section-selector-button" href="/{{ channel_info.uploader_id }}">Home</a>
+		
+		{% if "videos" in channel_info.downloaded_sections %}
+			<a class="section-selector-button" href="/{{ channel_info.uploader_id }}/videos">Videos</a>
+		{% endif %}
+		
+		{% if "shorts" in channel_info.downloaded_sections %}
+			<a class="section-selector-button" href="/{{ channel_info.uploader_id }}/shorts">Shorts</a>
+		{% endif %}
+		
+		{% if "streams" in channel_info.downloaded_sections %}
+			<a class="section-selector-button current" href="/{{ channel_info.uploader_id }}/streams">Streams</a>
+		{% endif %}
+		
+		{% if "playlists" in channel_info.downloaded_sections %}
+			<a class="section-selector-button" href="/{{ channel_info.uploader_id }}/playlists">Playlists</a>
+		{% endif %}
+		
+		<a class="section-selector-button" href="/{{ channel_info.uploader_id }}/about">About</a>
+	</div>
+
+	<div class="channel-page-content">
+		<div class="channel-page-preview-header">
+			<label for="sort-select">Sort by:</label>
+			<select id="sort-select">
+				<option value="newest">Newest</option>
+				<option value="oldest">Oldest</option>
+				<option value="most_popular">Most Popular</option>
+				<option value="least_popular">Least Popular</option>
+			</select>
+		</div>
+		<div id="video-container" class="video-preview-container channel"></div>
+		<div id="loading" style="text-align:center; padding:10px;">Loading...</div>
+	</div>
+
+	<script>
+		const channelId = "{{ channel_info.uploader_id }}";
+		let offset = 0;
+		let loading = false;
+		let allLoaded = false;
+		let sort = "newest";
+
+		function fetchVideos() {
+			if (loading || allLoaded) return;
+			loading = true;
+			document.getElementById("loading").style.display = "block";
+
+			fetch(`/load_more_content/${channelId}/streams?offset=${offset}&sort=${sort}`)
+				.then(res => res.json())
+				.then(data => {
+					if (data.length === 0) {
+						allLoaded = true;
+						document.getElementById("loading").innerText = "No more streams.";
+						return;
+					}
+					offset += data.length;
+					const container = document.getElementById("video-container");
+
+					data.forEach(video => {
+						const el = document.createElement("div");
+						el.className = "video-preview";
+						el.innerHTML = `
+							<a href="/${video.uploader_id}/${video.video_id}">
+								<div class="video-preview-top">
+									<img class="video-preview-thumbnail" src="/${video.thumbnail_location}">
+									<span class="video-preview-duration">${video.duration}</span>
+								</div>
+							</a>
+							<div class="video-preview-bottom channel">
+								<div class="video-preview-info">
+									<a href="/${video.uploader_id}/${video.video_id}" class="video-preview-title">${video.title}</a>
+									<a href="/${video.uploader_id}/${video.video_id}" class="video-preview-sub-info">${video.views[1]} views • ${video.uploaddate}</a>
+								</div>
+							</div>
+						`;
+						container.appendChild(el);
+					});
+				})
+				.finally(() => loading = false);
+		}
+
+		window.addEventListener("scroll", () => {
+			if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 300)) {
+				fetchVideos();
+			}
+		});
+
+		document.getElementById("sort-select").addEventListener("change", (e) => {
+			sort = e.target.value;
+			offset = 0;
+			allLoaded = false;
+			document.getElementById("video-container").innerHTML = "";
+			fetchVideos();
+		});
+
+		function allCheck() {
+			if (allLoaded) return;
+			
+			fetch(`/check/${channelId}/streams`)
+				.then(res => res.json())
+				.then(data => { 
+					console.log(data)
+					if (data < 20) {
+						allLoaded = true;
+						document.getElementById("loading").innerText = "No more streams.";
+						return;
+					}
+				
+				})
+		}
+		
+		allCheck();
+
+		fetchVideos();
+	</script>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "legacy/1_LegacyBase.html" %}
+
+{% block title %}NDBTube - Accounts{% endblock %}
+
+{% block content %}
+	<!-- Account List -->
+	<div class="settings-header">
+		<p>Accounts:</p>
+		<a href="/settings" class="settings-page-button">Back</a>
+	</div>
+	<div class="settings-panel">
+		{% for key, user in users.items() %}
+		<div class="user-account">
+			<p>{{ user["username"] }}</p>
+			<a href="/AccountManagement/{{ user['id'] }}" class="settings-page-button">Manage</a>
+		</div>
+		{% endfor %}
+	</div>
+	<!-- Account List -->
+	<div class="settings-header">
+		<p>New Account:</p>
+	</div>
+	<div class="settings-panel">
+		<div>
+			<div class="balls main">
+				<label for="user">Username:</label>
+				<input type="text" id="user" name="user" class="input-main">
+			</div>
+			<div class="balls main">
+				<label for="password">Password:</label>
+				<input type="password" id="password" name="password" class="input-main">
+			</div>
+			<div class="balls main">
+				<label for="confirm">Confirm Password:</label>
+				<input type="password" id="confirm" name="confirm" class="input-main">
+			</div>
+			<div class="balls main">
+				<label for="role">Role:</label>
+				<select name="role" id="role" class="select-main">
+					<option value="user">User</option>
+					<option value="admin">Admin</option>
+				</select>
+			</div>
+			<div class="balls main">
+				<label for="access_type">Access Type:</label>
+				<select name="access_type" id="access_type" class="select-main">
+					<option value="legacy">Legacy</option>
+					<option value="modern">Modern</option>
+				</select>
+			</div>
+			<div class="balls main">
+				<label for="modern_theme">Theme:</label>
+				<select name="modern_theme" id="modern_theme" class="select-main">
+					<option value="light">Light Theme</option>
+					<option value="dark">Dark Theme</option>
+				</select>
+			</div>
+			<div class="balls main">
+				<button type="button" onclick="newAccount()" class="settings-page-apply-button main">Create Account</button>
+			</div>
+		</div>
+	</div>
+	<script>
+		function newAccount() {
+			var username = document.getElementById("user").value;
+			var password = document.getElementById("password").value;
+			var role = document.getElementById("role").value;
+			var confirm_password = document.getElementById("confirm").value;
+			var access_type = document.getElementById("access_type").value;
+			var modern_theme = document.getElementById("modern_theme").value;
+
+			var payload = {
+				username: username,
+				password: password,
+				role: role,
+				confirm_password: confirm_password,
+				access_type: access_type,
+				modern_theme: modern_theme
+			};
+
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", "/AccountManagement/0/new_account", true);
+			xhr.setRequestHeader("Content-Type", "application/json");
+
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 4) {
+					if (xhr.status === 200) {
+						alert("Account Created!");
+						location.reload();
+					} else {
+						try {
+							var data = JSON.parse(xhr.responseText);
+							alert(data.message || "Failed to create account.");
+						} catch (e) {
+							alert("Failed to create account.");
+						}
+					}
+				}
+			};
+
+			xhr.send(JSON.stringify(payload));
+		}
+	</script>
+{% endblock %}

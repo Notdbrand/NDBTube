@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>NDBTube</title>
+		<style>
+			body {
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				height: 100vh;
+				font-family: Arial, sans-serif;
+				margin: 0;
+				padding: 0;
+				background-color: #121212;
+				color: #FFF;
+				background: linear-gradient(135deg, #293f53, #1f2a34);
+			}
+			
+			.setup-container {
+				display: block;
+				width: 100%;
+				max-width: 360px;
+				height: 540px;
+				margin: 10px auto;
+				padding: 20px;
+				background-color: #0C0C0C;
+				border: 2px solid #262626;
+				border-radius: 20px;
+				box-sizing: border-box;
+			}
+			.setup-container-content {
+				height: 441px;
+			}
+			.setup-container-content.p1 {
+				text-align: center;
+				display: block;
+			}
+			.setup-container-content.p2 {
+				display: none;
+			}
+			.setup-container-content.p3 {
+				display: none;
+			}
+			.setup-container-content.p4 {
+				display: none;
+			}
+			.setup-container-content.p5 {
+				display: none;
+			}
+			.setup-container-content.p6 {
+				display: none;
+			}
+			
+			h2 {
+				text-align: center;
+			}
+			.type1 {
+				font-weight: bold;
+				margin: 5px 2px 2px;
+				font-size: 18px;
+			}
+			.type2 {
+				margin: 5px 2px 2px;
+				font-size: 16px;
+			}
+			.type3 {
+				margin: 5px 2px 2px;
+				font-size: 14px;
+			}
+			
+			.text-box {
+				padding: 5px 0;
+			}
+			.text-box input {
+				width: 100%;
+				height: 34px;
+				padding: 5px 8px;
+				color: #FFF;
+				background-color: #0C0C0C;
+				border: 2px solid #262626;
+				border-radius: 20px;
+				margin-top: 5px;
+				box-sizing: border-box;
+			}
+			.text-box.cookies {
+				display: none;
+			}
+			.text-box.quality {
+				display: none;
+			}
+			
+			.drop-down {
+				padding: 5px 0;
+			}
+			.drop-down-option {
+				display: block;
+				width: 100%;
+				padding: 5px;
+				color: #FFF;
+				background-color: #0C0C0C;
+				border: 2px solid #262626;
+				border-radius: 20px;
+				margin-top: 5px;
+				box-sizing: border-box;
+				font-size: 14px;
+			}
+			
+			button {
+				width: 100%;
+				padding: 5px;
+				color: #FFF;
+				background-color: #0C0C0C;
+				border: 2px solid #262626;
+				border-radius: 20px;
+				box-sizing: border-box;
+			}
+			.buttons {
+				width: 100%;
+				padding: 5px 0;
+				height: 29px;
+				box-sizing: border-box;
+			}
+			.buttons.start {
+				display: block;
+			}
+			.buttons.during {
+				display: none;
+			}
+			.buttons.end {
+				display: none;
+			}
+			.button_2 {
+				width: 40%;
+			}
+			.button_2.back {
+				float: left;
+			}
+			.button_2.next {
+				float: right;
+			}
+			.button_2.finish {
+				float: right;
+			}
+			
+		</style>
+	</head>
+	<body>
+		<div class="setup-container">
+			<div class="setup-container-content p1">
+				<h2>NDBTube</h2>
+				<p class="type1">Welcome to the NDBTube setup!</p>
+				<br>
+				<p class="type2">NDBTube will help archive everything you want from Youtube.</p>
+				<br>
+				<p class="type2">This is one of my first big projects so there may be some bugs. If you find any, please submit an issue on the github page so I can try and fix them.</p>
+				<br>
+				<p class="type2">Now to begin the setup, press the start button.</p>
+			</div>
+			<div class="setup-container-content p2">
+				<h2>NDBTube</h2>
+				<p class="type2">When using yt-dlp, cookies are recommended to stop youtube blocking you.</p>
+				<p class="type2">To using cookies, sign into youtube on the server that this is hosted on and select that browser in the drop down or custom.</p>
+				<div class="drop-down">
+					<p class="type2">Cookies:</p>
+					<select name="cookies" class="drop-down-option">
+						<option value="no_cookies">No Cookies</option>
+						<option value="firefox">Firefox</option>
+						<option value="chrome">Chrome</option>
+						<option value="edge">Edge</option>
+						<option value="safari">Safari</option>
+						<option value="custom_cookies">Custom</option>
+					</select>
+				</div>
+				<div class="text-box cookies">
+					<p class="type2">Custom Cookies:</p>
+					<input type="text" name="custom_cookies_value" placeholder="Enter browser supported by yt-dlp">
+				</div>
+			</div>
+			<div class="setup-container-content p3">
+				<h2>NDBTube</h2>
+				<p class="type2">Download quality:</p>
+				<p class="type2">Select the preset or enter the custom values for the maximum download quality.</p>
+				<div class="drop-down">
+					<p class="type2">Presets:</p>
+					<select name="download_quality" class="drop-down-option">
+						<option value="720 30">720p 30fps</option>
+						<option value="720 60">720p 60fps</option>
+						<option value="1080 30">1080p 30fps</option>
+						<option value="1080 60">1080p 60fps</option>
+						<option value="1440 60">1440p 60fps</option>
+						<option value="custom_quality">Custom</option>
+					</select>
+				</div>
+				<div class="text-box quality">
+					<p class="type3">Custom Resolution:</p>
+					<input type="text" name="custom_resolution" placeholder="Enter the vertical resolution excluding 'p'">
+					<p class="type3">Custom FPS:</p>
+					<input type="text" name="custom_framerate" placeholder="Enter the fps excluding 'fps'">
+				</div>
+			</div>
+			<div class="setup-container-content p4">
+				<h2>NDBTube</h2>
+				<p class="type2">Download members only content?</p>
+				<p class="type3">You'll need to be a member for each channel that has exclusive content and cookies.</p>
+				<div class="drop-down">
+					<p class="type2">Options:</p>
+					<select name="members_content" class="drop-down-option">
+						<option value="1">Skip members only content</option>
+						<option value="0">Download members only content</option>
+					</select>
+				</div>
+			</div>
+			<div class="setup-container-content p5">
+				<h2>NDBTube</h2>
+				<p class="type2">Account Setup:</p>
+				<div class="text-box">
+					<p class="type3">Username:</p>
+					<input type="text" name="username" placeholder="Username">
+					<p class="type3">Password:</p>
+					<input type="password" name="password" placeholder="Password">
+					<p class="type3">Confirm Password:</p>
+					<input type="password" name="confirm_password" placeholder="Confirm Password">
+				</div>
+				<div class="drop-down">
+					<p class="type2">Theme:</p>
+					<select name="user_theme" class="drop-down-option">
+						<option value="dark">Dark Mode</option>
+						<option value="light">Light Mode</option>
+					</select>
+				</div>
+				<div class="drop-down">
+					<p class="type2">Access Type:</p>
+					<select name="access_type" class="drop-down-option">
+						<option value="modern">Modern Browser</option>
+						<option value="legacy">Legacy Browser</option>
+					</select>
+					<p class="type3">*Legacy option uses more basic CSS for wider support.</p>
+				</div>
+			</div>
+			<div class="setup-container-content p6">
+				<h2>NDBTube</h2>
+				<p class="type2">Setup Summary:</p>
+				<p class="type2">Cookies:</p>
+				<p class="type3"></p>
+				<p class="type2">Download Quality:</p>
+				<p class="type3"></p>
+				<p class="type2">Members Content:</p>
+				<p class="type3"></p>
+				<p class="type2">Theme:</p>
+				<p class="type3"></p>
+				<p class="type2">Access Type:</p>
+				<p class="type3"></p>
+				<br>
+				<p class="type2">Go back to change any options or press finish to start using NDBTube.</p>
+			</div>
+		
+		<div class="buttons start">
+			<button>Start</button>
+		</div>
+		<div class="buttons during">
+			<button class="button_2 back">Back</button>
+			<button class="button_2 next">Next</button>
+		</div>
+		<div class="buttons end">
+			<button class="button_2 back">Back</button>
+			<button class="button_2 finish">Finish</button>
+		</div>
+		</div>
+	</body>
+	<script>
+	(function () {
+		var currentPage = 1;
+		var totalPages = 6;
+		var setupData = {};
+
+		function showPage(pageNum) {
+			var i, content, startBtn, duringBtns, endBtns;
+			for (i = 1; i <= totalPages; i++) {
+				content = document.querySelector('.p' + i);
+				content.style.display = (i === pageNum) ? 'block' : 'none';
+			}
+			startBtn = document.querySelector('.buttons.start');
+			duringBtns = document.querySelector('.buttons.during');
+			endBtns = document.querySelector('.buttons.end');
+
+			startBtn.style.display = (pageNum === 1) ? 'block' : 'none';
+			duringBtns.style.display = (pageNum > 1 && pageNum < totalPages) ? 'block' : 'none';
+			endBtns.style.display = (pageNum === totalPages) ? 'block' : 'none';
+		}
+
+		function getSelectedText(select) {
+			return select.options[select.selectedIndex].text;
+		}
+
+		function validatePage(pageNum) {
+			if (pageNum === 2) {
+				var sel = document.getElementsByName('cookies')[0];
+				if (sel.value === 'custom_cookies') {
+					var val = document.getElementsByName('custom_cookies_value')[0].value;
+					if (!val) {
+						alert('Please enter custom cookies value.');
+						return false;
+					}
+					setupData.cookies = val;
+				} else {
+					setupData.cookies = getSelectedText(sel);
+				}
+			} else if (pageNum === 3) {
+				var sel = document.getElementsByName('download_quality')[0];
+				if (sel.value === 'custom_quality') {
+					var res = document.getElementsByName('custom_resolution')[0].value;
+					var fps = document.getElementsByName('custom_framerate')[0].value;
+					if (!res || !fps) {
+						alert('Please fill out all custom quality fields.');
+						return false;
+					}
+					setupData.download_quality = res + "p " + fps + "fps ";
+				} else {
+					setupData.download_quality = getSelectedText(sel);
+				}
+			} else if (pageNum === 4) {
+				var sel = document.getElementsByName('members_content')[0];
+				setupData.members_content = getSelectedText(sel);
+			} else if (pageNum === 5) {
+				var uname = document.getElementsByName('username')[0].value;
+				var pass = document.getElementsByName('password')[0].value;
+				var confirm = document.getElementsByName('confirm_password')[0].value;
+				if (!uname || !pass || !confirm) {
+					alert("Please fill in all account fields.");
+					return false;
+				}
+				if (pass !== confirm) {
+					alert("Passwords do not match.");
+					return false;
+				}
+				setupData.username = uname;
+				var theme = document.getElementsByName('user_theme')[0];
+				setupData.user_theme = getSelectedText(theme);
+				var access = document.getElementsByName('access_type')[0];
+				setupData.access_type = getSelectedText(access);
+			}
+			return true;
+		}
+
+		function updateSummary() {
+			var p6 = document.querySelectorAll('.p6 .type3');
+			p6[0].innerHTML = setupData.cookies || '';
+			p6[1].innerHTML = setupData.download_quality || '';
+			p6[2].innerHTML = setupData.members_content || '';
+			p6[3].innerHTML = setupData.user_theme || '';
+			p6[4].innerHTML = setupData.access_type || '';
+		}
+
+		// Event bindings
+		var startBtn = document.querySelector('.buttons.start button');
+		startBtn.onclick = function () {
+			currentPage = 2;
+			showPage(currentPage);
+		};
+
+		var nextBtn = document.querySelector('.button_2.next');
+		nextBtn.onclick = function () {
+			if (!validatePage(currentPage)) return;
+			currentPage++;
+			if (currentPage > totalPages) currentPage = totalPages;
+			if (currentPage === totalPages) updateSummary();
+			showPage(currentPage);
+		};
+
+		var backBtns = document.querySelectorAll('.button_2.back');
+		for (var i = 0; i < backBtns.length; i++) {
+			backBtns[i].onclick = function () {
+				currentPage--;
+				if (currentPage < 1) currentPage = 1;
+				showPage(currentPage);
+			};
+		}
+
+		// Finish handler
+		var finishBtn = document.querySelector('.button_2.finish');
+		finishBtn.onclick = function () {
+			var cookies = document.getElementsByName('cookies')[0].value;
+			var custom_cookies_value = document.getElementsByName('custom_cookies_value')[0].value;
+			var download_quality = document.getElementsByName('download_quality')[0].value;
+			var custom_resolution = document.getElementsByName('custom_resolution')[0].value;
+			var custom_framerate = document.getElementsByName('custom_framerate')[0].value;
+			var members_content = document.getElementsByName('members_content')[0].value;
+			var username = document.getElementsByName('username')[0].value;
+			var password = document.getElementsByName('password')[0].value;
+			var user_theme = document.getElementsByName('user_theme')[0].value;
+			var access_type = document.getElementsByName('access_type')[0].value;
+
+			var payload = {
+				cookies: cookies,
+				custom_cookies_value: custom_cookies_value,
+				download_quality: download_quality,
+				custom_resolution: custom_resolution,
+				custom_framerate: custom_framerate,
+				members_content: members_content,
+				username: username,
+				password: password,
+				user_theme: user_theme,
+				access_type: access_type
+			};
+
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", "/setup", true);
+			xhr.setRequestHeader("Content-Type", "application/json");
+
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 4) {
+					if (xhr.status === 200) {
+						alert("Setup Successful! Taking you to the login page.");
+						window.location.href = '/login';
+					} else {
+						alert("Failed to save setup. Review options and please try again.");
+					}
+				}
+			};
+
+			xhr.send(JSON.stringify(payload));
+		}
+
+		// Conditional custom input visibility
+		var cookieSelect = document.getElementsByName('cookies')[0];
+		cookieSelect.onchange = function () {
+			var customBox = document.querySelector('.text-box.cookies');
+			customBox.style.display = (this.value === 'custom_cookies') ? 'block' : 'none';
+		};
+
+		var qualitySelect = document.getElementsByName('download_quality')[0];
+		qualitySelect.onchange = function () {
+			var customQuality = document.querySelector('.text-box.quality');
+			customQuality.style.display = (this.value === 'custom_quality') ? 'block' : 'none';
+		};
+		
+		// Init
+		showPage(currentPage);
+	})();
+	
+	</script>
+</html>

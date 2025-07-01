@@ -1,0 +1,29 @@
+{% extends "modern/1_Base.html" %}
+
+{% block title %}NDBTube - Channels{% endblock %}
+
+{% block content %}
+	<div class="channel-page-content">
+		<div class="settings-header">
+			<label for="sort">Sort by:</label>
+			<select id="sort" name="sort" onchange="location = this.value;">
+				<option value="/channels?sort=alpha" {% if sort_by == 'alpha' %}selected{% endif %}>Alphabetical</option>
+				<option value="/channels?sort=most_videos" {% if sort_by == 'most_videos' %}selected{% endif %}>Most Videos</option>
+				<option value="/channels?sort=date" {% if sort_by == 'date' %}selected{% endif %}>Date Added</option>
+			</select>
+			<a href="/ChannelManagement" class="settings-page-button">Manage</a>
+		</div>
+		
+		{% for channel in channels %}
+			<a href="/{{ channel.uploader_id }}" class="channel-list-box">
+				<img src="/static/channels/{{ channel.uploader_id }}/channel.png" alt="{{ channel.uploader }} icon" class="channel-list-icon">
+				<div class="channel-list-info">
+					<h3>{{ channel.uploader }}</h3>
+					<p>Subscribers: {{ channel.subscriber_count[1] }}</p>
+					<p>Total Videos: {{ channel.channel_videos }}</p>
+				</div>
+				<span href="/{{ channel.uploader_id }}" class="channel-list-view-button">View Channel</span>
+			</a>
+		{% endfor %}
+	</div>
+{% endblock %}

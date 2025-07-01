@@ -1,0 +1,33 @@
+{% extends "legacy/7_0_LegacyChannelBase.html" %}
+
+{% block title %}{{ channel_info.uploader }} - Playlists{% endblock %}
+
+{% block content %}
+	<!-- Channel Navigation Buttons -->
+	<div class="channel-page-nav">
+		<button onclick="window.location.href='/{{ channel_info.uploader_id }}'">Home</button>
+		{% if "videos" in channel_info.downloaded_sections %}
+			<button onclick="window.location.href='/{{ channel_info.uploader_id }}/videos'">Videos</button>
+		{% endif %}
+		{% if "shorts" in channel_info.downloaded_sections %}
+			<button onclick="window.location.href='/{{ channel_info.uploader_id }}/shorts'">Shorts</button>
+		{% endif %}
+		{% if "streams" in channel_info.downloaded_sections %}
+			<button onclick="window.location.href='/{{ channel_info.uploader_id }}/streams'">Streams</button>
+		{% endif %}
+		
+		{% if "playlists" in channel_info.downloaded_sections %}
+			<button class="active-tab" onclick="window.location.href='/{{ channel_info.uploader_id }}/playlists'">Playlists</button>
+		{% endif %}
+		<button onclick="window.location.href='/{{ channel_info.uploader_id }}/about'">About</button>
+	</div>
+
+	<div class="playlist-grid clearfix">
+        {% for playlist in channel_playlists %}
+        <a href="/legacy/{{ channel_info.uploader_id }}/playlist/{{ playlist.playlist_id }}" class="playlist-box">
+            <div class="playlist-title">{{ playlist.title }}</div>
+            <div class="playlist-meta">{{ playlist.amount }} videos</div>
+        </a>
+        {% endfor %}
+    </div>
+{% endblock %}

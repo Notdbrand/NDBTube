@@ -1,0 +1,88 @@
+{% extends "modern/1_Base.html" %}
+
+{% block title %}NDBTube - Accounts{% endblock %}
+
+{% block content %}
+	<!-- Account List -->
+	<div class="settings-header">
+		<p>Accounts:</p>
+		<a href="/settings" class="settings-page-button">Back</a>
+	</div>
+	<div class="settings-panel account">
+		{% for key, user in users.items() %}
+		<div class="user-account">
+			<p>{{ user["username"] }}</p>
+			<a href="/AccountManagement/{{ user['id'] }}" class="settings-page-button">Manage</a>
+		</div>
+		{% endfor %}
+	</div>
+	<!-- Account List -->
+	<div class="settings-header">
+		<p>New Account:</p>
+	</div>
+	<div class="settings-panel management">
+		<div class="settings-panel-form">
+			<div class="balls">
+				<label for="user">Username:</label>
+				<input type="text" id="user" name="user">
+			</div>
+			<div class="balls">
+				<label for="password">Password:</label>
+				<input type="password" id="password" name="password">
+			</div>
+			<div class="balls">
+				<label for="confirm">Confirm Password:</label>
+				<input type="password" id="confirm" name="confirm">
+			</div>
+			<div class="balls">
+				<label for="role">Role:</label>
+				<select name="role" id="role">
+					<option value="user">User</option>
+					<option value="admin">Admin</option>
+				</select>
+			</div>
+			<div class="balls">
+				<label for="access_type">Access Type:</label>
+				<select name="access_type" id="access_type">
+					<option value="legacy">Legacy</option>
+					<option value="modern">Modern</option>
+				</select>
+			</div>
+			<div class="balls">
+				<label for="modern_theme">Theme:</label>
+				<select name="modern_theme" id="modern_theme">
+					<option value="light">Light Theme</option>
+					<option value="dark">Dark Theme</option>
+				</select>
+			</div>
+			<button type="button" onclick="newAccount()" class="settings-page-apply-button">Create Account</button>
+		</div>
+	</div>
+	<script>
+		function newAccount() {
+			const payload = {
+				username: document.getElementById("user").value,
+				password: document.getElementById("password").value,
+				confirm_password: document.getElementById("confirm").value,
+				access_type: document.getElementById("access_type").value,
+				modern_theme: document.getElementById("modern_theme").value,
+			};
+
+			fetch('/AccountManagement/0/new_account', {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload)
+			})
+			.then(async res => {
+				if (res.ok) {
+					alert("Account Created.");
+					location.reload();
+				} else {
+					const data = await res.json();
+					throw new Error(data.message || "Failed to change password.");
+				}
+			})
+			.catch(err => alert("Error: " + err.message));
+		}
+	</script>
+{% endblock %}

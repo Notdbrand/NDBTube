@@ -1,0 +1,137 @@
+{% extends "modern/1_Base.html" %}
+
+{% block title %}NDBTube - Account{% endblock %}
+
+{% block content %}
+	<!-- Account -->
+	<div class="settings-header">
+		<p>Account: {{ user["username"] }}</p>
+		<a href="/AccountManagement" class="settings-page-button">Back</a>
+	</div>
+	
+	<!-- Role -->
+	<div class="settings-header">
+		<p>Change Role</p>
+	</div>
+	<div class="settings-panel">
+		<div class="settings-panel-form">
+			<div class="balls"> 
+				<label for="role">Role:</label>
+				<select name="role" id="role">
+					<option value="user" {% if current_role == "user" %}selected{% endif %}>User</option>
+					<option value="admin" {% if current_role == "admin" %}selected{% endif %}>Admin</option>
+				</select>
+			</div>
+			<button type="button" onclick="saveRole()" class="settings-page-apply-button">Save</button>
+		</div>
+	</div>
+	
+	<!-- Change Password -->
+	<div class="settings-header">
+		<p>Change Password</p>
+	</div>
+	<div class="settings-panel management">
+		<div class="settings-panel-form">
+			<div class="balls">
+				<label for="current">Current Password:</label>
+				<input type="password" id="current" name="current">
+			</div>
+			<div class="balls">
+				<label for="new">New Password:</label>
+				<input type="password" id="new" name="new">
+			</div>
+			<div class="balls">
+				<label for="confirm">Confirm Password:</label>
+				<input type="password" id="confirm" name="confirm">
+			</div>
+			<button type="button" onclick="savePassword()" class="settings-page-apply-button">Save</button>
+		</div>
+	</div>
+	
+	<!-- Delete Account -->
+	<div class="settings-header">
+		<p>Delete Account</p>
+	</div>
+	<div class="settings-panel management">
+		<div class="settings-panel-form">
+			<div class="balls">
+				<label for="deletepassword">Account Password:</label>
+				<input type="password" id="deletepassword" name="deletepassword">
+			</div>
+			<button type="button" onclick="deleteAccount()" class="settings-page-apply-button">Delete</button>
+		</div>
+	</div>
+	
+	<script>
+		function saveRole() {
+			const payload = {
+				username: "{{ user['username'] }}",
+				new_role: document.getElementById("role").value
+			};
+
+			fetch('/AccountManagement/{{ user["id"] }}/role', {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload)
+			})
+			.then(async res => {
+				if (res.ok) {
+					location.reload();
+				} else {
+					const data = await res.json();
+					throw new Error(data.message || "Failed to update role.");
+				}
+			})
+			.catch(err => alert("Error: " + err.message));
+		}
+
+		function savePassword() {
+			const payload = {
+				username: "{{ user['username'] }}",
+				current_password: document.getElementById("current").value,
+				new_password: document.getElementById("new").value,
+				confirm_password: document.getElementById("confirm").value
+			};
+
+			fetch('/AccountManagement/{{ user["id"] }}/password', {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload)
+			})
+			.then(async res => {
+				if (res.ok) {
+					location.reload();
+				} else {
+					const data = await res.json();
+					throw new Error(data.message || "Failed to change password.");
+				}
+			})
+			.catch(err => alert("Error: " + err.message));
+		}
+		
+		function deleteAccount() {
+			const payload = {
+				username: "{{ user['username'] }}",
+				deletepassword: document.getElementById("deletepassword").value
+			};
+
+			fetch('/AccountManagement/{{ user["id"] }}/deleteaccount', {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload)
+			})
+			.then(async res => {
+				if (res.ok) {
+					alert("Account Removed.");
+					window.location.href = '/AccountManagement';
+				} else {
+					const data = await res.json();
+					throw new Error(data.message || "Failed to change password.");
+				}
+			})
+			.catch(err => alert("Error: " + err.message));
+		}
+	</script>
+
+
+{% endblock %}

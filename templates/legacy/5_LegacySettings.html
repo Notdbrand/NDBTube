@@ -1,0 +1,210 @@
+{% extends "legacy/1_LegacyBase.html" %}
+
+{% block title %}NDBTube - Settings{% endblock %}
+
+{% block content %}
+	{% if total_Channels == 0 %}
+		<div class="settings-header">
+			<span>No Channels downloaded. Go to channel management to download one. <a href="/ChannelManagement" class="settings-page-button">Channel Management</a></span>
+		</div>
+	{% endif %}
+	<!-- Account Information -->
+	<div class="settings-header">
+		<p>Account</p>
+		{% if rights == "admin" %}
+			<a href="/AccountManagement" class="settings-page-button">Manage Accounts</a>
+		{% endif %}
+	</div>
+	<div class="settings-panel">
+		<p>Logged in as: {{ username }}</p>
+		<p>
+			{% if 'user' in session %}
+				<a href="{{ url_for('logout') }}" class="settings-page-button">Logout</a>
+			{% endif %}
+		</p>
+	</div>
+	
+	<!-- Settings -->
+	<div class="settings-header">
+		<p>Settings</p>
+	</div>
+	<div class="settings-panel">
+		<form method="POST" action="{{ url_for('legacy_settings') }}">
+			<div class="balls main"> <!-- Good job reviewing code! -->
+				<label for="access_type">Access Type:</label>
+				<select name="access_type" id="access_type" class="select-main">
+					<option value="legacy" {% if current_access == "legacy" %}selected{% endif %}>Legacy</option>
+					<option value="modern" {% if current_access == "modern" %}selected{% endif %}>Modern</option>
+				</select>
+			</div>
+			<div class="balls main">
+				<label for="legacy_theme">Theme:</label>
+				<select name="legacy_theme" id="legacy_theme" class="select-main">
+					<option value="light" {% if current_theme == "light" %}selected{% endif %}>Light Mode</option>
+					<option value="dark" {% if current_theme == "dark" %}selected{% endif %}>Dark Mode</option>
+				</select>
+			</div>
+			<div class="balls main">
+				<button type="submit" class="settings-page-apply-button main">Apply</button>
+			</div>
+		</form>
+	</div>
+	
+	<!-- Change Password -->
+	<div class="settings-header">
+		<p>Change Password</p>
+	</div>
+	<div class="settings-panel">
+		<form>
+			<div class="balls main">
+				<label for="current">Current Password:</label>
+				<input type="password" id="current" name="current" class="input-main">
+			</div>
+			<div class="balls main">
+				<label for="new">New Password:</label>
+				<input type="password" id="new" name="new" class="input-main">
+			</div>
+			<div class="balls main">
+				<label for="confirm">Confirm Password:</label>
+				<input type="password" id="confirm" name="confirm" class="input-main">
+			</div>
+			<div class="balls main">
+				<button type="button" onclick="savePassword()" class="settings-page-apply-button main">Save</button>
+			</div>
+		</form>
+	</div>
+	
+	{% if rights == "admin" %}
+	<!-- Channels -->
+	<div class="settings-header">
+		<p>Channels</p>
+		<a href="/ChannelManagement" class="settings-page-button">Manage Channels</a>
+	</div>
+	<div class="settings-panel">
+		<p>Total Channels: {{ total_Channels }}</p>
+		<br>
+		<p>Total Videos: {{ total_Videos }}</p>
+	</div>
+	
+	<!-- Manage Download Settings -->
+	<div class="settings-header">
+		<p>Download Settings</p>
+	</div>
+	<div class="settings-panel">
+		<form>
+			<div class="balls main">
+				<label for="resolution">Resolution:</label>
+				<input type="text" id="resolution" name="resolution" value="{{ settings.video_quality['resolution'] }}" class="input-main">
+			</div>
+			<div class="balls main">
+				<label for="fps">Framerate:</label>
+				<input type="text" id="fps" name="fps" value="{{ settings.video_quality['fps'] }}" class="input-main">
+			</div>
+			<div class="balls main">
+				<button type="button" onclick="saveDownloadSettings()" class="settings-page-apply-button main">Save</button>
+			</div>
+		</form>
+	</div>
+	<!-- Shutdown -->
+	<div class="settings-header">
+		<p>Server Controls</p>
+	</div>
+	<div class="settings-panel">
+		<form method="POST" action="/shutdown" class="settings-panel-form">
+			<button type="submit" class="settings-page-apply-button main">Shutdown</button>
+		</form>
+	</div>
+	{% endif %}
+	
+	<!-- History -->
+	{% if recent_history != [] %}
+	<div class="settings-header">
+		<p>History</p>
+		<a href="/history" class="settings-page-button">View All</a>
+	</div>
+	<div class="video-grid">
+		{% for video in recent_history %}
+			{% if loop.index % 3 == 1 %}
+				<div class="video-row clearfix">
+			{% endif %}
+					<a href="/{{ video.uploader_id }}/{{ video.video_id }}">
+						<div class="video-preview">
+							<img class="video-thumbnail" src="/static/channels/{{ video.uploader_id }}/thumbnails/{{ video.video_id }}.jpg" alt="{{ video.title }}">
+							<p>{{ video.duration }}</p>
+							<div class="video-title">{{ video.title }}</div>
+							<div class="video-meta">
+								<span>Watch At: {{ video.watched_at }}</span>
+							</div>
+						</div>
+					</a>
+			{% if loop.index % 3 == 0 or loop.last %}
+				</div>
+			{% endif %}
+		{% endfor %}
+	</div>
+	{% endif %}
+	
+	<script>
+	function saveDownloadSettings() {
+		var resolution = document.getElementById("resolution").value;
+		var fps = document.getElementById("fps").value;
+
+		var payload = {
+			resolution: resolution,
+			fps: fps
+		};
+
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "/api/settings/save_download_settings", true);
+		xhr.setRequestHeader("Content-Type", "application/json");
+
+		xhr.onreadystatechange = function () {
+			if (xhr.readyState === 4) {
+				if (xhr.status === 200) {
+					alert("Settings saved successfully!");
+					location.reload();
+				} else {
+					alert("Failed to save settings. Please try again.");
+				}
+			}
+		};
+
+		xhr.send(JSON.stringify(payload));
+	}
+	function savePassword() {
+		var username = "{{ username }}";
+		var current_password = document.getElementById("current").value;
+		var new_password = document.getElementById("new").value;
+		var confirm_password = document.getElementById("confirm").value;
+
+		var payload = {
+			username: username,
+			current_password: current_password,
+			new_password: new_password,
+			confirm_password: confirm_password
+		};
+
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "/api/settings/password", true);
+		xhr.setRequestHeader("Content-Type", "application/json");
+
+		xhr.onreadystatechange = function () {
+			if (xhr.readyState === 4) {
+				if (xhr.status === 200) {
+					alert("Password Changed successfully!");
+					location.reload();
+				} else {
+					try {
+						var data = JSON.parse(xhr.responseText);
+						alert(data.message || "Failed to change password.");
+					} catch (e) {
+						alert("Failed to change password.");
+					}
+				}
+			}
+		};
+
+		xhr.send(JSON.stringify(payload));
+	}
+	</script>
+{% endblock %}
