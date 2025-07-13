@@ -872,7 +872,7 @@ def legacy_Account_Management_page(user_id):
         abort(403)
     if "user" not in session:
         return redirect(url_for("login"))
-    user_id = int(user_id)
+    user_id = user_id
     user = load_user(user_id)
     channels = sorted(load_channels(), key=lambda x: x["uploader"].lower())
     return render_template("/legacy/10_1_LegacyAccountManagement.html", 
