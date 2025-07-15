@@ -1,7 +1,8 @@
 # NDBTube
 This GitHub repository contains the code for a custom python server built to archive Youtube channels.  
 I wouldn't recommend exposing this server to the internet. It wasn't built for that. Just use it on your local network.  
-If you find any bugs, let me know.
+If you find any bugs, let me know.  
+View previews of the interface [here](https://github.com/Notdbrand/NDBTube/blob/main/Preview.md).
 
 ## Features
 - Download all or specific sections of a channel
@@ -77,4 +78,4 @@ To download your first channel go to channel management, enter a channel url, pi
 If you have any questions or suggestions, send them to notdebrand@gmail.com or start an issue in this repo.
 
 ### Inspiration:
-I wanted to host my own instance of tuberepairer but when I found out I had to also host an indivious I couldn't be bothered, so then I decided to make a wrapper for my existing youtube archive and a lot of feature creap later the project is now its own fully fledged archive server.
+I wanted to host my own instance of tuberepairer but when I found out I had to also host an indivious I couldn't be bothered, so then I decided to make a wrapper for my existing youtube archive and a lot of feature creap later the project is now its own fully fledged archive server. Crazy how things blow up.
