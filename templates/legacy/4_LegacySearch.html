@@ -32,7 +32,7 @@
 					{% endif %}
 						<a href="/{{ video.uploader_id }}/{{ video.video_id }}">
 							<div class="video-preview">
-								<img class="video-thumbnail" src="/{{ video.thumbnail_location }}" alt="{{ video.title }}">
+								<img class="video-thumbnail" src="/thumbnail/{{ video.uploader_id }}/{{ video.video_id }}" alt="{{ video.title }}">
 								<p>{{ video.duration }}</p>
 								<div class="video-title">{{ video.title }}</div>
 									<div class="video-meta">

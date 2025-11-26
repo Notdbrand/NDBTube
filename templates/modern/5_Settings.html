@@ -137,6 +137,33 @@
 		</div>
 	</div>
 	
+	<!-- Channel location settings -->
+	<div class="settings-header">
+		<p>Channel Read/Download Locations</p>
+	</div>
+	<div class="settings-panel channels">
+		<table class="channel-management-table">
+			<tr>
+				<th>Location</th>
+				<th>Manage</th>
+			</tr>
+			{% for location in locations %}
+				<tr>
+					<td>{{ location }}</td>
+					<td><button type="button" value="{{ location }}" onclick="removeLocationSetting(value)" class="settings-page-button">Remove</button></td>
+				</tr>
+			{% endfor %}
+		</table>
+		<button type="button" onclick="updateArchive()" class="settings-page-apply-button">Update Archive</button>
+		<div class="settings-panel-form">
+			<div class="balls">
+				<label for="location">New Location:</label>
+				<input type="text" id="location" name="location">
+			</div>
+			<button type="button" onclick="saveLocationSettings()" class="settings-page-apply-button">Add</button>
+		</div>
+	</div>
+	
 	<!-- Shutdown -->
 	<div class="settings-header">
 		<p>Server Controls</p>
@@ -148,118 +175,11 @@
 	</div>
 	{% endif %}
 	
+	
 	<script>
-		document.addEventListener("DOMContentLoaded", function () {
-			if ("{{ current_theme }}" === "custom") {
-				const root = document.documentElement;
-				const colorInputs = {
-				base: '--base',
-				light_base: '--light',
-				interactive: '--interactive',
-				border: '--border',
-				hover: '--hover',
-				text: '--text',
-				shadow: '--shadow',
-				icon: '--icon'
-				};
-				for (const [id, cssVar] of Object.entries(colorInputs)) {
-					const input = document.getElementById(id);
-					if (input) {
-						if (id === 'shadow') {
-							root.style.setProperty('--shadow', `rgba(0, 0, 0, ${input.value})`);
-						} else {
-							root.style.setProperty(cssVar, input.value);
-						}
-
-						input.addEventListener('input', () => {
-							if (id === 'shadow') {
-								root.style.setProperty('--shadow', `rgba(0, 0, 0, ${input.value})`);
-							} else {
-								root.style.setProperty(cssVar, input.value);
-							}
-						});
-					}
-				}
-			}
-		});
-		
-		function saveDownloadSettings() {
-			const payload = {
-				resolution: document.getElementById("resolution").value,
-				fps: document.getElementById("fps").value
-			};
-
-			fetch("/api/settings/save_download_settings", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(payload)
-			}).then(res => {
-				if (res.ok) location.reload();
-			});
-		}
-		
-		function applySettings() {
-			const payload = {
-				access_type: document.getElementById("access_type").value,
-				modern_theme: document.getElementById("modern_theme").value
-			};
-
-			fetch("/api/settings/apply", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(payload)
-			}).then(res => {
-				if (res.ok) location.reload();
-			});
-		}
-
-		function saveCustomTheme() {
-			const payload = {
-				access_type: document.getElementById("access_type").value,
-				modern_theme: "custom",
-				base: document.getElementById("base").value,
-				text: document.getElementById("text").value,
-				light_base: document.getElementById("light_base").value,
-				interactive: document.getElementById("interactive").value,
-				border: document.getElementById("border").value,
-				hover: document.getElementById("hover").value,
-				shadow: document.getElementById("shadow").value,
-				icon: document.getElementById("icon").value
-			};
-
-			fetch("/api/settings/save_theme", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(payload)
-			}).then(res => {
-				if (res.ok) location.reload();
-			});
-		}
-		
-		function savePassword() {
-			const payload = {
-				username: "{{ username }}",
-				current_password: document.getElementById("current").value,
-				new_password: document.getElementById("new").value,
-				confirm_password: document.getElementById("confirm").value
-			};
-
-			fetch('/api/settings/password', {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(payload)
-			})
-			.then(async res => {
-				if (res.ok) {
-					location.reload();
-				} else {
-					const data = await res.json();
-					throw new Error(data.message || "Failed to change password.");
-				}
-			})
-			.catch(err => alert("Error: " + err.message));
-		}
+		var username = "{{ username }}";
+		var theme_type = "{{ current_theme }}";
 	</script>
-
-
+	<script src="/static/JS/Settings.js"></script>
+	<script src="/static/JS/Settings_Modern.js"></script>
 {% endblock %}

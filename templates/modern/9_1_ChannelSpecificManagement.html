@@ -1,0 +1,103 @@
+{% extends "modern/1_Base.html" %}
+
+{% block title %}NDBTube - Channel Management{% endblock %}
+
+{% block content %}
+	<div class="settings-header">
+		<p>Channel Information:</p>
+		<a href="/ChannelManagement" class="settings-page-button">Back</a>
+	</div>
+	<div class="settings-panel management">
+		{% for channel in channels %}
+			{% if channel.uploader_id == channel_info.uploader_id %}
+				<p>Uploader Name: {{ channel.uploader }}</p>
+				<p>Uploader ID: {{ channel.uploader_id }}</p>
+				<p>Last Checked: {{ channel_info.last_checked }}</p>
+				<p>Total channel views: {{ channel_info.total_views[0] }}</p>
+				<p>Total channel subscribers: {{ channel_info.subscriber_count[0] }}</p>
+				<p>Location: {{ channel.location }}</p>
+			{% endif %}
+		{% endfor %}
+	</div>
+	
+	
+	<div class="settings-header">
+		<p>Sections to update:</p>
+	</div>
+
+	<div class="settings-panel management">
+		<table class="channel-management-table">
+			<tr>
+				<th class="channel-preferences-box">Videos</th>
+				<th class="channel-preferences-box">Shorts</th>
+				<th class="channel-preferences-box">Streams</th>
+			</tr>
+				{% for channel in channels %}
+					{% if channel.uploader_id == channel_info.uploader_id %}
+					<tr>
+						<td class="channel-preferences-box"><input type="checkbox" id="videos-checkbox" name="include_videos" {% if "videos" in channel.to_download_sections %} checked {% endif %}></td>
+						<td class="channel-preferences-box"><input type="checkbox" id="shorts-checkbox" name="include_shorts" {% if "shorts" in channel.to_download_sections %} checked {% endif %}></td>
+						<td class="channel-preferences-box"><input type="checkbox" id="streams-checkbox" name="include_streams" {% if "streams" in channel.to_download_sections %} checked {% endif %}></td>
+					</tr>
+					{% endif %}
+				{% endfor %}
+		</table>
+		<p style="font-weight:bold">Save Preferences:</p>
+		<p>Select which sections of the channel you want to update in the future with the checkboxes and press 'Save Preferences'.</p>
+		<div class="update-buttons">
+			<button type="button" id="update-preferences" class="settings-page-apply-button">Save Preferences</button>
+		</div>
+	</div>
+	
+	<div class="settings-header">
+		<p>Export Channel:</p>
+	</div>
+	<div class="settings-panel">
+		<div>WIP</div>
+	</div>
+	
+	<!-- Save channel preferences -->
+	<script>
+		document.getElementById('update-preferences').addEventListener('click', function () {
+			var rows = document.querySelectorAll('table tr');
+			var prefs = [];
+			const channelId = "{{ channel_info.uploader_id }}";
+
+			for (var i = 1; i < rows.length; i++) {
+				var row = rows[i];
+				var include_videos = row.querySelector('input[name="include_videos"]').checked;
+				var include_shorts = row.querySelector('input[name="include_shorts"]').checked;
+				var include_streams = row.querySelector('input[name="include_streams"]').checked;
+
+				var sections = [];
+				if (include_videos) sections.push('videos');
+				if (include_shorts) sections.push('shorts');
+				if (include_streams) sections.push('streams');
+
+				prefs.push({
+					uploader_id: channelId,
+					to_download_sections: sections
+				});
+			}
+
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', '/ChannelManagement/save_prefs', true);
+			xhr.setRequestHeader('Content-Type', 'application/json');
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === 4) {
+					try {
+						var data = JSON.parse(xhr.responseText);
+						if (data.success) {
+							alert('Preferences saved!');
+						} else {
+							alert('Error saving preferences');
+						}
+					} catch (e) {
+						alert('Invalid server response');
+					}
+				}
+			};
+			xhr.send(JSON.stringify({ prefs: prefs }));
+		});
+	</script>
+{% endblock %}

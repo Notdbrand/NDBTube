@@ -6,13 +6,13 @@
 	<!-- Video Player -->
 	<div class="video-player-container">
 		<video controls>
-			<source src="/{{ video.video_location }}" type="video/mp4">
+			<source src="/video/{{ video.uploader_id }}/{{ video.video_id }}" type="video/mp4">
 			Your browser does not support the video tag.
 		</video>
 		<h1>{{ video.title }}</h1>
 		<p>Views: {{ video.views[1] }} &bull; Likes: {{ video.likes[1] }}  &bull; Upload Date: {{ video.uploaddate }}</p>
 		
-		<img src="/static/channels/{{ channel_info.uploader_id }}/channel.png" alt="{{ channel_info.uploader }} icon" class="video-player-channel-icon">
+		<img src="/icon/{{ channel_info.uploader_id }}" alt="{{ channel_info.uploader }} icon" class="video-player-channel-icon">
 		<div class="video-player-channel-info">
 			<p>{{ channel_info.uploader }} &bull; Subscribers: {{ channel_info.subscriber_count[1] }}</p>
 		</div>
@@ -36,7 +36,7 @@
 					{% endif %}
 						<a href="/{{ video.uploader_id }}/{{ video.video_id }}">
 							<div class="video-preview">
-								<img class="video-thumbnail" src="/{{ video.thumbnail_location }}" alt="{{ video.title }}">
+								<img class="video-thumbnail" src="/thumbnail/{{ video.uploader_id }}/{{ video.video_id }}" alt="{{ video.title }}">
 								<p>{{ video.duration }}</p>
 								<div class="video-title">{{ video.title }}</div>
 								<div class="video-meta">

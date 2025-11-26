@@ -162,7 +162,7 @@
             <h3>Quick Access:</h3>
             {% for channel in channels %}
                 <a class="channel-item" href="/{{ channel.uploader_id }}">
-                    <img src="/static/channels/{{ channel.uploader_id }}/channel.png" alt="{{ channel.uploader }}" class="channel-icon">
+                    <img src="/icon/{{ channel.uploader_id }}" alt="{{ channel.uploader }}" class="channel-icon">
                     <span>{{ channel.uploader }}</span>
                 </a>
             {% endfor %}
@@ -196,9 +196,9 @@
     <!-- Main Content -->
     <div class="main-content">
 		<div class="channel-page-info">
-			<img class="channel-page-banner" src="/static/channels/{{ channel_info.uploader_id }}/banner.png" alt="Channel Banner">
+			<img class="channel-page-banner" src="/banner/{{ channel_info.uploader_id }}" alt="Channel Banner">
 			<div class="channel-page-details">
-				<img class="channel-page-icon" src="/static/channels/{{ channel_info.uploader_id }}/channel.png" alt="Channel Icon">
+				<img class="channel-page-icon" src="/icon/{{ channel_info.uploader_id }}" alt="Channel Icon">
 				<div class="channel-page-details-text">
 					<h2>{{ channel_info.uploader }}</h2>
 					<div class="channel-page-details-text-lower">

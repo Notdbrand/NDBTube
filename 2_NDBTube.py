@@ -29,7 +29,8 @@ def channel_download_starter(data, type):
         global_status_string = "Starting Update for All Channels."
         all_channels = load_channels()
         uploader_ids = [ch["uploader_id"] for ch in all_channels]
-        return start_channel_download(uploader_ids, is_update=True)
+        data = data + uploader_ids
+        return start_channel_download(data, is_update=True)
     return "Unknown operation"
 
 def start_channel_download(data, is_update=False):
@@ -40,10 +41,10 @@ def start_channel_download(data, is_update=False):
         print("Download already in progress.")
         return "Download already in progress."
 
-    def run_download(channel_url, include_videos, include_shorts, include_streams, quick_update=False):
+    def run_download(channel_url, include_videos, include_shorts, include_streams, quick_update=False, location=0):
         global current_process
 
-        input_data = f"{channel_url}\n{include_videos}\n{include_shorts}\n{include_streams}\n{quick_update}\n"
+        input_data = f"{channel_url}\n{include_videos}\n{include_shorts}\n{include_streams}\n{quick_update}\n{location}\n"
         current_process = subprocess.Popen(
             ["python", "1_Channel_Download.py"],
             stdin=subprocess.PIPE,
@@ -82,7 +83,11 @@ def start_channel_download(data, is_update=False):
             include_videos = "videos" in [s.lower() for s in sections]
             include_shorts = "shorts" in [s.lower() for s in sections]
             include_streams = "streams" in [s.lower() for s in sections]
-            run_download(channel_url, str(include_videos), str(include_shorts), str(include_streams), str(quick_update))
+            location = ch["location"]
+            server_settings = load_settings()
+            download_locations = server_settings["locations"]
+            location_index = download_locations.index(location)
+            run_download(channel_url, str(include_videos), str(include_shorts), str(include_streams), str(quick_update), str(location_index))
 
     try:
         if is_update:
@@ -93,9 +98,10 @@ def start_channel_download(data, is_update=False):
             include_videos = str(entry["include_videos"])
             include_shorts = str(entry["include_shorts"])
             include_streams = str(entry["include_streams"])
+            location = str(entry["location"])
 
             global_status_string = f"Downloading: {channel_url}"
-            threading.Thread(target=lambda: [run_download(channel_url, include_videos, include_shorts, include_streams), download_lock.release(), set_idle_status()], daemon=True).start()
+            threading.Thread(target=lambda: [run_download(channel_url, include_videos, include_shorts, include_streams, False, location), download_lock.release(), set_idle_status()], daemon=True).start()
             return "Download started."
 
         threading.Thread(target=lambda: [download_lock.release(), set_idle_status()], daemon=True).start()
@@ -141,6 +147,71 @@ def get_current_user_rights():
         return user_info.get("role", "user")
     return "user"
 
+def update_archive():
+    locations = load_settings()["locations"]
+
+    video_files = []
+    channel_files = []
+
+    all_videos = []
+    all_channels = []
+
+    for base in locations:
+        for root, dirs, files in os.walk(base):
+            for f in files:
+                if f == "All_Videos.json":
+                    continue
+
+                full_path = os.path.join(root, f)
+
+                if f.endswith(("_Videos.json", "_Shorts.json", "_Streams.json")):
+                    video_files.append((base, full_path))
+
+                if f.endswith("channel.json"):
+                    channel_files.append((base, full_path))
+
+    for base, path in video_files:
+        with open(path, "r", encoding="utf-8") as f:
+            file_videos = json.load(f)
+
+        for video in file_videos:
+            new_video = {
+                "title": video["title"],
+                "video_id": video["video_id"],
+                "views": video["views"],
+                "uploaddate": video["uploaddate"],
+                "duration": video["duration"],
+                "uploader": video["uploader"],
+                "uploader_id": video["uploader_id"],
+                "location": base
+            }
+            all_videos.append(new_video)
+
+    with open("static/All_Videos.json", "w", encoding="utf-8") as f:
+        json.dump(all_videos, f, indent=4)
+
+    for base, path in channel_files:
+        with open(path, "r", encoding="utf-8") as f:
+            channel = json.load(f)
+
+        new_channel = {
+            "uploader": channel["uploader"],
+            "uploader_id": channel["uploader_id"],
+            "subscriber_count": channel["subscriber_count"],
+            "total_views": channel["total_views"],
+            "channel_videos": channel["video_count"],
+            "channel_URL": f"https://youtube.com/{channel['uploader_id']}",
+            "downloaded_sections": channel["downloaded_sections"],
+            "to_download_sections": channel["downloaded_sections"],
+            "location": base,
+            "last_checked": channel["last_checked"],
+        }
+
+        all_channels.append(new_channel)
+
+    with open("static/channels.json", "w", encoding="utf-8") as f:
+        json.dump(all_channels, f, indent=4)
+
 @app.before_request
 def first_setup():
     if not os.path.isfile("data/users.json") and request.endpoint != "setup":
@@ -182,54 +253,40 @@ def load_channels():
     with open(all_channels, "r", encoding="utf-8") as f:
         return json.load(f)
 
-def load_channel_videos(channel):
-    channel_path = f"static/channels/{channel}/{channel}_Videos.json"
-    if not os.path.exists(channel_path):
-        return None
-    with open(channel_path, "r", encoding="utf-8") as f:
-        return json.load(f)
-        
-def load_channel_shorts(channel):
-    channel_path = f"static/channels/{channel}/{channel}_Shorts.json"
-    if not os.path.exists(channel_path):
-        return None
-    with open(channel_path, "r", encoding="utf-8") as f:
-        return json.load(f)
-        
-def load_channel_streams(channel):
-    channel_path = f"static/channels/{channel}/{channel}_Streams.json"
-    if not os.path.exists(channel_path):
-        return None
-    with open(channel_path, "r", encoding="utf-8") as f:
-        return json.load(f)
-        
-def load_channel_playlists(channel):
-    channel_path = f"static/channels/{channel}/{channel}_Playlists.json"
-    if not os.path.exists(channel_path):
-        return None
-    with open(channel_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+def load_channel_content(channel, type):
+    server_settings = load_settings()
+    download_locations = server_settings["locations"]
+    for download_location in download_locations:
+        channel_path = f"{download_location}/channels/{channel}/{channel}_{type}.json"
+        if os.path.exists(channel_path):
+            with open(channel_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+    return None
 
 def load_channel_playlist(channel, playlist_id):
-    playlists = load_channel_playlists(channel)
+    playlists = load_channel_content(channel, "Playlists")
     for playlist in playlists:
         if playlist.get("playlist_id") == playlist_id:
             return playlist
     return []
 
 def load_channel_playlist_videos(channel, playlist_id):
-    playlists = load_channel_playlists(channel)
+    playlists = load_channel_content(channel, "Playlists")
     for playlist in playlists:
         if playlist.get("playlist_id") == playlist_id:
             return playlist.get("videos", [])
     return []
 
 def load_channel_info(channel):
-    channel_path = f"static/channels/{channel}/channel.json"
-    if not os.path.exists(channel_path):
-        return None
-    with open(channel_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    server_settings = load_settings()
+    download_locations = server_settings["locations"]
+    for download_location in download_locations:
+        channel_path = f"{download_location}/channels/{channel}/channel.json"
+        if os.path.exists(channel_path):
+            with open(channel_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+
+    return None
 
 def load_user_history(user):
     with open(f"data/history/{user}_history.json", "r", encoding="utf-8") as f:
@@ -289,17 +346,17 @@ def make_new_account(data, setup=False):
     return jsonify({"success": True})
 
 def make_settings(data):
-    print(data)
     cookies = data.get("cookies")
     download_quality = data.get("download_quality")
     settings = {
         "security": "login_required",
-        "ignore_member_only": int(data.get("members_content"))
+        "ignore_member_only": int(data.get("members_content")),
+        "locations": ["static"]
     }
     
     if cookies == "no_cookies":
         settings["cookie_option"] = "none"
-        settings["cookie_value"] = None
+        settings["cookie_value"] = "none"
     elif cookies == "custom_cookies":
         settings["cookie_option"] = "browser"
         settings["cookie_value"] = data.get("custom_cookies_value")
@@ -312,7 +369,6 @@ def make_settings(data):
     else:
         download_values = download_quality.split()
         settings["video_quality"] = {"resolution": int(download_values[0]), "fps": int(download_values[1])}
-    
     with open("data/settings.json", "w", encoding="utf-8") as f:
         json.dump(settings, f, indent=4)
 
@@ -421,12 +477,44 @@ def setup():
         </script>
     '''
 
-@app.route("/static/channels/<channel_id>/thumbnails/<video_id>.jpg")
+@app.route("/thumbnail/<channel_id>/<video_id>")
 def serve_thumbnail(channel_id, video_id):
-    thumbnail_path = f"static/channels/{channel_id}/thumbnails/{video_id}.jpg"
-    if not os.path.exists(thumbnail_path):
-        return send_from_directory("data", "404.jpg")
-    return send_from_directory(f"static/channels/{channel_id}/thumbnails", f"{video_id}.jpg")
+    server_settings = load_settings()
+    download_locations = server_settings["locations"]
+    for download_location in download_locations:
+        thumbnail_path = f"{download_location}/channels/{channel_id}/thumbnails/{video_id}.jpg"
+        if os.path.exists(thumbnail_path):
+            return send_from_directory(f"{download_location}/channels/{channel_id}/thumbnails", f"{video_id}.jpg")  
+    return send_from_directory("data", "404.jpg")
+    
+@app.route("/icon/<channel_id>")
+def serve_icon(channel_id):
+    server_settings = load_settings()
+    download_locations = server_settings["locations"]
+    for download_location in download_locations:
+        icon_path = f"{download_location}/channels/{channel_id}/channel.png"
+        if os.path.exists(icon_path):
+            return send_from_directory(f"{download_location}/channels/{channel_id}/", f"channel.png")  
+    return send_from_directory("data", "404.jpg")
+    
+@app.route("/banner/<channel_id>")
+def serve_banner(channel_id):
+    server_settings = load_settings()
+    download_locations = server_settings["locations"]
+    for download_location in download_locations:
+        banner_path = f"{download_location}/channels/{channel_id}/banner.png"
+        if os.path.exists(banner_path):
+            return send_from_directory(f"{download_location}/channels/{channel_id}/", f"banner.png")  
+    return send_from_directory("data", "404.jpg")
+    
+@app.route("/video/<channel_id>/<video_id>")
+def serve_video(channel_id, video_id):
+    server_settings = load_settings()
+    download_locations = server_settings["locations"]
+    for download_location in download_locations:
+        video_path = f"{download_location}/channels/{channel_id}/videos/{video_id}.mp4"
+        if os.path.exists(video_path):
+            return send_from_directory(f"{download_location}/channels/{channel_id}/videos/", f"{video_id}.mp4")
 
 def get_formatted_datetime():
     return datetime.now().strftime("%H:%M %d/%m/%Y")
@@ -466,15 +554,14 @@ def save_channel_prefs():
     data = request.get_json()
     if not data or "prefs" not in data:
         return jsonify(success=False, error="No prefs"), 400
-        
     path = os.path.join("static", "channels.json")
     with open(path, "r", encoding="utf-8") as f:
         channels = json.load(f)
 
-    lookup = { p["channel_URL"]: p for p in data["prefs"] }
+    lookup = { p["uploader_id"]: p for p in data["prefs"] }
 
     for ch in channels:
-        key = ch.get("channel_URL") or ch.get("uploader")
+        key = ch.get("uploader_id") or ch.get("uploader")
         if key in lookup:
             ch["to_download_sections"] = lookup[key]["to_download_sections"]
 
@@ -494,6 +581,8 @@ def single_channel_download():
     if "user" not in session:
         return redirect(url_for("login"))
     data = request.get_json()
+    print("Single Download")
+    print(data)
     result = channel_download_starter(data, 1)
     return jsonify(success=(result == "Download started."), status=result)
     
@@ -502,6 +591,7 @@ def update_selected():
     if "user" not in session:
         return redirect(url_for("login"))
     data = request.get_json()
+    print("UpdateSelected")
     print(data)
     channel_download_starter(data, 2)
     return jsonify(success=True)
@@ -511,6 +601,7 @@ def update_all():
     if "user" not in session:
         return redirect(url_for("login"))
     data = request.get_json()
+    print("UpdateAll")
     print(data)
     channel_download_starter(data, 3)
     return jsonify(success=True)
@@ -576,7 +667,7 @@ def legacy_channel_home_page(channel_id):
     channels = load_channels()
     if not any(ch["uploader_id"] == channel_id for ch in channels):
         abort(404)
-    channel_videos = load_channel_videos(channel_id)
+    channel_videos = load_channel_content(channel_id, "Videos")
     if not channel_videos:
         abort(404)
     recent_videos = channel_videos[0:3]
@@ -607,7 +698,7 @@ def legacy_channel_videos_page(channel_id):
     channels = load_channels()
     if not any(ch["uploader_id"] == channel_id for ch in channels):
         abort(404)
-    channel_videos = load_channel_videos(channel_id)
+    channel_videos = load_channel_content(channel_id, "Videos")
     channel_info = load_channel_info(channel_id)
     if not channel_videos:
         abort(404)
@@ -629,7 +720,7 @@ def legacy_channel_shorts_page(channel_id):
     channels = load_channels()
     if not any(ch["uploader_id"] == channel_id for ch in channels):
         abort(404)
-    channel_shorts = load_channel_shorts(channel_id)
+    channel_shorts = load_channel_content(channel_id, "Shorts")
     channel_info = load_channel_info(channel_id)
     if not channel_shorts:
         abort(404)
@@ -651,7 +742,7 @@ def legacy_channel_streams_page(channel_id):
     channels = load_channels()
     if not any(ch["uploader_id"] == channel_id for ch in channels):
         abort(404)
-    channel_streams = load_channel_streams(channel_id)
+    channel_streams = load_channel_content(channel_id, "Streams")
     channel_info = load_channel_info(channel_id)
     if not channel_streams:
         abort(404)
@@ -671,7 +762,7 @@ def legacy_channel_streams_page(channel_id):
 @app.route("/legacy/<channel_id>/playlists")
 def legacy_channel_playlists_page(channel_id):
     channel_info = load_channel_info(channel_id)
-    channel_playlists = load_channel_playlists(channel_id)
+    channel_playlists = load_channel_content(channel_id, "Playlists")
     return render_template("/legacy/7_5_LegacyChannelPlaylists.html", 
                             channel_info=channel_info, 
                             channel_playlists=channel_playlists)
@@ -679,7 +770,7 @@ def legacy_channel_playlists_page(channel_id):
 @app.route("/legacy/<channel_id>/playlist/<playlist_id>")
 def legacy_channel_playlist_page(channel_id, playlist_id):
     channel_info = load_channel_info(channel_id)
-    channel_playlists = load_channel_playlists(channel_id)
+    channel_playlists = load_channel_content(channel_id, "Playlists")
 
     playlist = next((pl for pl in channel_playlists if pl["playlist_id"] == playlist_id), None)
     if not playlist:
@@ -722,9 +813,9 @@ def legacy_video_page(channel_id, video_id):
         else:
             history = []
             
-        channel_videos = load_channel_videos(channel_id) or []
-        channel_shorts = load_channel_shorts(channel_id) or []
-        channel_streams = load_channel_streams(channel_id) or []
+        channel_videos = load_channel_content(channel_id, "Videos") or []
+        channel_shorts = load_channel_content(channel_id, "Shorts") or []
+        channel_streams = load_channel_content(channel_id, "Streams") or []
         all_vids = channel_videos + channel_shorts + channel_streams
         if not all_vids:
             abort(404)
@@ -817,6 +908,7 @@ def legacy_settings():
         current_theme=current_theme,
         username=username,
         recent_history=recent_history,
+        locations=settings["locations"], 
         total_Channels=len(load_channels()),
         total_Videos=len(load_all_videos()),
         settings=settings,
@@ -849,8 +941,23 @@ def legacy_Channel_Management_page():
     if get_current_user_rights() != "admin":
         abort(403)
     channels = sorted(load_channels(), key=lambda x: x["uploader"].lower())
-    return render_template("/legacy/9_LegacyChannelManagement.html", 
+    settings = load_settings()
+    return render_template("/legacy/9_0_LegacyChannelManagement.html", 
                             channels=channels, 
+                            locations=settings["locations"], 
+                            on_channel_management=True)
+                            
+@app.route("/legacy/ChannelManagement/<channel_id>")
+def legacy_Specific_Channel_Management_page(channel_id):
+    if "user" not in session:
+        return redirect(url_for("login"))
+    if get_current_user_rights() != "admin":
+        abort(403)
+    channels = sorted(load_channels(), key=lambda x: x["uploader"].lower())
+    channel_info = load_channel_info(channel_id)
+    return render_template("/legacy/9_1_LegacyChannelSpecificManagement.html", 
+                            channels=channels, 
+                            channel_info=channel_info, 
                             on_channel_management=True)
 
 @app.route("/legacy/AccountManagement")
@@ -924,9 +1031,9 @@ def modern_channel_featured_page(channel_id):
                 window.history.back();
             </script>
         '''
-    channel_videos = load_channel_videos(channel_id) or []
-    channel_shorts = load_channel_shorts(channel_id) or []
-    channel_streams = load_channel_streams(channel_id) or []
+    channel_videos = load_channel_content(channel_id, "Videos") or []
+    channel_shorts = load_channel_content(channel_id, "Shorts") or []
+    channel_streams = load_channel_content(channel_id, "Streams") or []
     all_vids = channel_videos + channel_shorts + channel_streams
     if not all_vids:
         abort(404)
@@ -1014,7 +1121,7 @@ def modern_channel_playlists_page(channel_id):
                 window.history.back();
             </script>
         '''
-    channel_playlists = load_channel_playlists(channel_id)    
+    channel_playlists = load_channel_content(channel_id, "Playlists")    
     channel_info = load_channel_info(channel_id)
     return render_template("/modern/7_5_ChannelPlaylists.html", 
                             channels=channels,
@@ -1054,10 +1161,11 @@ def modern_video_page(channel_id, video_id):
         else:
             history = []
             
-        channel_videos = load_channel_videos(channel_id) or []
-        channel_shorts = load_channel_shorts(channel_id) or []
-        channel_streams = load_channel_streams(channel_id) or []
+        channel_videos = load_channel_content(channel_id, "Videos") or []
+        channel_shorts = load_channel_content(channel_id, "Shorts") or []
+        channel_streams = load_channel_content(channel_id, "Streams") or []
         all_vids = channel_videos + channel_shorts + channel_streams
+        print(all_vids)
         if not all_vids:
             return '''
                 <script>
@@ -1102,7 +1210,7 @@ def modern_channel_playlist_page(channel_id, playlist_id):
     if get_current_user_access() == "legacy":
         return redirect(url_for("legacy_channel_playlist_page", channel_id=channel_id, video_id=video_id))
     channel_info = load_channel_info(channel_id)
-    channel_playlists = load_channel_playlists(channel_id)
+    channel_playlists = load_channel_content(channel_id, "Playlists")
 
     playlist = load_channel_playlist(channel_id, playlist_id)
     if not playlist:
@@ -1147,15 +1255,16 @@ def modern_settings():
     settings = load_settings()
 
     return render_template("/modern/5_Settings.html",
-                           channels=sorted(load_channels(), key=lambda x: x["uploader"].lower()),
-                           current_access=user_info.get("access_type", "legacy"),
-                           current_theme=user_info.get("modern_theme", "light"),
-                           username=username,
-                           total_Channels=len(load_channels()),
-                           total_Videos=len(load_all_videos()),
-                           custom_colour_css=custom_colour_css,
-                           settings=settings,
-                           rights=get_current_user_rights())
+        channels=sorted(load_channels(), key=lambda x: x["uploader"].lower()),
+        current_access=user_info.get("access_type", "legacy"),
+        current_theme=user_info.get("modern_theme", "light"),
+        username=username,
+        total_Channels=len(load_channels()),
+        locations=settings["locations"], 
+        total_Videos=len(load_all_videos()),
+        custom_colour_css=custom_colour_css,
+        settings=settings,
+        rights=get_current_user_rights())
 
 @app.route("/api/settings/<type>", methods=["POST"])
 def update_settings(type):
@@ -1174,9 +1283,21 @@ def update_settings(type):
             "resolution": int(resolution),
             "fps": int(fps)
         }
-        
         with open("data/settings.json", "w", encoding="utf-8") as f:
             json.dump(settings, f, indent=4)
+    elif type == "save_location_settings":
+        location = data.get("location")
+        settings["locations"].append(location)
+        with open("data/settings.json", "w", encoding="utf-8") as f:
+            json.dump(settings, f, indent=4)
+    elif type == "remove_location_setting":
+        location = data.get("location")
+        settings["locations"].remove(location)
+        with open("data/settings.json", "w", encoding="utf-8") as f:
+            json.dump(settings, f, indent=4)
+    elif type == "update_archive":
+        if global_status_string == "Idle":
+            update_archive()
     elif type == "apply":
         new_access = data.get("access_type")
         new_theme = data.get("modern_theme")
@@ -1235,8 +1356,26 @@ def modern_Channel_Management_page():
     if "user" not in session:
         return redirect(url_for("login"))
     channels = sorted(load_channels(), key=lambda x: x["uploader"].lower())
-    return render_template("/modern/9_ChannelManagement.html", 
+    settings = load_settings()
+    return render_template("/modern/9_0_ChannelManagement.html", 
                             channels=channels, 
+                            locations=settings["locations"], 
+                            rights=get_current_user_rights(), 
+                            on_channel_management=True)
+                            
+@app.route("/ChannelManagement/<channel_id>")
+def modern_Channel_Specific_Management_page(channel_id):
+    if get_current_user_access() == "legacy":
+        return redirect(url_for("legacy_Specific_Channel_Management_page", channel_id=channel_id))
+    if get_current_user_rights() != "admin":
+        abort(403)
+    if "user" not in session:
+        return redirect(url_for("login"))
+    channels = sorted(load_channels(), key=lambda x: x["uploader"].lower())
+    channel_info = load_channel_info(channel_id)
+    return render_template("/modern/9_1_ChannelSpecificManagement.html", 
+                            channels=channels, 
+                            channel_info=channel_info, 
                             rights=get_current_user_rights(), 
                             on_channel_management=True)
 
@@ -1368,13 +1507,13 @@ def channel_api(api, channel_id, type):
     
     if api == "load_more_content":
         if type == "videos":
-            all_videos = load_channel_videos(channel_id)
+            all_videos = load_channel_content(channel_id, "Videos")
         elif type == "shorts":
-            all_videos = load_channel_shorts(channel_id)
+            all_videos = load_channel_content(channel_id, "Shorts")
         elif type == "streams":
-            all_videos = load_channel_streams(channel_id)
+            all_videos = load_channel_content(channel_id, "Streams")
         elif type == "playlists":
-            return jsonify(load_channel_playlists(channel_id)[offset:offset + 30])
+            return jsonify(load_channel_content(channel_id, "Playlists")[offset:offset + 30])
         elif type == "playlist":
             return jsonify(load_channel_playlist_videos(channel_id, playlist_id)[offset:offset + 30])
         else:
@@ -1398,13 +1537,13 @@ def channel_api(api, channel_id, type):
     
     elif api == "check":
         if type == "videos":
-            total = load_channel_videos(channel_id)
+            total = load_channel_content(channel_id, "Videos")
         elif type == "shorts":
-            total = load_channel_shorts(channel_id)
+            total = load_channel_content(channel_id, "Shorts")
         elif type == "streams":
-            total = load_channel_streams(channel_id)
+            total = load_channel_content(channel_id, "Streams")
         elif type == "playlists":
-            total = load_channel_playlists(channel_id)
+            total = load_channel_content(channel_id, "Playlists")
         elif type == "playlist":
             total = load_channel_playlist_videos(channel_id, playlist_id)
         else:

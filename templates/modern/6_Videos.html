@@ -6,14 +6,14 @@
 	<!-- Video Player -->
 	<div class="video-player-container">
 		<video controls>
-			<source src="/{{ video.video_location }}" type="video/mp4">
+			<source src="/video/{{ channel_info.uploader_id }}/{{ video.video_id }}" type="video/mp4">
 			Your browser does not support the video tag.
 		</video>
 		<div class="video-info">
 			<h1>{{ video.title }}</h1>
 			<p>Views: {{ video.views[1] }} &bull; Likes: {{ video.likes[1] }}  &bull; Upload Date: {{ video.uploaddate }}</p>
 			<a href="/{{ channel_info.uploader_id }}" class="video-player-channel-icon-link">
-				<img src="/static/channels/{{ channel_info.uploader_id }}/channel.png" alt="{{ channel_info.uploader }} icon" class="video-player-channel-icon">
+				<img src="/icon/{{ channel_info.uploader_id }}" alt="{{ channel_info.uploader }} icon" class="video-player-channel-icon">
 			</a>
 			<div class="video-player-channel-info">
 				<p>
@@ -33,12 +33,12 @@
 			<div class="video-preview">
 				<a href="/{{ video.uploader_id }}/{{ video.video_id }}">
 					<div class="video-preview-top">
-						<img class="video-preview-thumbnail" src="/{{ video.thumbnail_location }}">
+						<img class="video-preview-thumbnail" src="/thumbnail/{{ video.uploader_id }}/{{ video.video_id }}">
 						<span class="video-preview-duration">{{ video.duration }}</span>
 					</div>
 				</a>
 				<div class="video-preview-bottom">
-					<a href="/{{ video.uploader_id }}"><img class="video-preview-channel-icon" src="/static/channels/{{ video.uploader_id }}/channel.png"></a>
+					<a href="/{{ video.uploader_id }}"><img class="video-preview-channel-icon" src="/icon/{{ video.uploader_id }}"></a>
 					<div class="video-preview-info">
 						<a href="/{{ video.uploader_id }}/{{ video.video_id }}" class="video-preview-title">{{ video.title }}</a>
 						<a href="/{{ video.uploader_id }}" class="video-preview-channel">{{ video.uploader }}</a>
@@ -100,12 +100,12 @@
 							videoElement.innerHTML = `
 								<a href="/${video.uploader_id}/${video.video_id}">
 									<div class="video-preview-top">
-										<img class="video-preview-thumbnail" src="/${video.thumbnail_location}">
+										<img class="video-preview-thumbnail" src="/thumbnail/${video.uploader_id}/${video.video_id}">
 										<span class="video-preview-duration">${video.duration}</span>
 									</div>
 								</a>
 								<div class="video-preview-bottom">
-									<a href="/${video.uploader_id}"><img class="video-preview-channel-icon" src="/static/channels/${video.uploader_id}/channel.png"></a>
+									<a href="/${video.uploader_id}"><img class="video-preview-channel-icon" src="/icon/${video.uploader_id}"></a>
 									<div class="video-preview-info">
 										<a href="/${video.uploader_id}/${video.video_id}" class="video-preview-title">${video.title}</a>
 										<a href="/${video.uploader_id}" class="video-preview-channel">${video.uploader}</a>

@@ -104,7 +104,7 @@ def MemberFilter(info):
         return 'Member-only content skipped'
     return None
     
-def GetChannelInfo(channel_url):
+def GetChannelInfo(channel_url, download_location):
     """
     Gets the channel information and videos to download.
     """
@@ -113,7 +113,7 @@ def GetChannelInfo(channel_url):
         'extract_flat': True,
         'force_generic_extractor': True,
         'match_filter': MemberFilter
-    }
+    }    
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(channel_url, download=False)
         if not info or 'entries' not in info:
@@ -123,7 +123,7 @@ def GetChannelInfo(channel_url):
         channel_icon_url = info.get('thumbnails', [{}])[-1].get('url', '')
         thumbnails = info.get('thumbnails', [])
         channel_sections_list = DetermineSections(info)
-        output_folder = os.path.join("static", "channels", uploader_id)
+        output_folder = os.path.join(f"{download_location}", "channels", uploader_id)
         os.makedirs(output_folder, exist_ok=True)
         
         if channel_icon_url:
@@ -188,9 +188,9 @@ def download_videos(uploader_id, video_entries, output_folder, type):
             },
             'sleep_interval': 5,
             'max_sleep_interval': 15,
-            'cookiesfrombrowser': (f'{server_settings["cookie_value"]}',),
         }
-
+        if server_settings["cookie_value"] != "none":
+            ydl_opts["cookiesfrombrowser"] = server_settings["cookie_value"]
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(video_url, download=video['id'] not in existing_videos)
@@ -225,9 +225,7 @@ def download_videos(uploader_id, video_entries, output_folder, type):
                 'description': info.get('description', ""),
                 'uploader_id': info.get('uploader_id', ''),
                 'uploaddate': format_upload_date(info.get('upload_date', "")),
-                'duration': format_duration(info.get('duration', 0)),
-                'thumbnail_location': new_thumbnail_path.replace("\\", "/"),
-                'video_location': os.path.join(video_folder, f"{info.get('id')}.mp4").replace("\\", "/")
+                'duration': format_duration(info.get('duration', 0))
             }
 
     metadata = list(existing_videos.values())
@@ -254,7 +252,7 @@ def calculate_total_views(video_metadata_file):
                 
     return total_views
 
-def update_all_videos(video_metadata):
+def update_all_videos(video_metadata, download_location):
     all_videos_path = os.path.join("static", "All_Videos.json")
     
     all_videos = {}
@@ -272,9 +270,9 @@ def update_all_videos(video_metadata):
             'views': video['views'],
             'uploaddate': video['uploaddate'],
             'duration': video['duration'],
-            'thumbnail_location': video['thumbnail_location'],
             'uploader': video['uploader'],
-            'uploader_id': video.get('uploader_id', '')
+            'uploader_id': video.get('uploader_id', ''),
+            'location': download_location
         }
     
     save_json(list(all_videos.values()), all_videos_path)
@@ -335,10 +333,10 @@ def load_channel_content_json(uploader_id, type):
         return json.load(f)
         
         
-def process_channel(channel_url, include_videos=False, include_shorts=False, include_streams=False, quick_update=False):
-    channel_info, channelcontentdata, uploader_id, sections = GetChannelInfo(channel_url)
-    output_folder = os.path.join("static", "channels", uploader_id)
-    print(uploader_id)
+def process_channel(channel_url, include_videos=False, include_shorts=False, include_streams=False, quick_update=False, location=0):
+    download_location = server_settings["locations"][location]
+    channel_info, channelcontentdata, uploader_id, sections = GetChannelInfo(channel_url, download_location)
+    output_folder = os.path.join(f"{download_location}", "channels", uploader_id)
     os.makedirs(output_folder, exist_ok=True)
     video_views = shorts_views = streams_views = 0
     downloaded_sections = []
@@ -387,7 +385,7 @@ def process_channel(channel_url, include_videos=False, include_shorts=False, inc
 
                     save_json(new_video_metadata, video_metadata_file)
 
-                update_all_videos(new_video_metadata)
+                update_all_videos(new_video_metadata, download_location)
             else:
                 print("No new videos found.")
     except Exception as e:
@@ -437,7 +435,7 @@ def process_channel(channel_url, include_videos=False, include_shorts=False, inc
 
                     save_json(new_metadata, shorts_metadata_file)
 
-                update_all_videos(new_metadata)
+                update_all_videos(new_metadata, download_location)
             else:
                 print("No new shorts found.")
     except Exception as e:
@@ -487,7 +485,7 @@ def process_channel(channel_url, include_videos=False, include_shorts=False, inc
 
                     save_json(new_metadata, streams_metadata_file)
 
-                update_all_videos(new_metadata)
+                update_all_videos(new_metadata, download_location)
             else:
                 print("No new streams found.")
     except Exception as e:
@@ -509,13 +507,17 @@ def process_channel(channel_url, include_videos=False, include_shorts=False, inc
     videos_folder = os.path.join(output_folder, "videos")
     video_count = len([f for f in os.listdir(videos_folder) if os.path.isfile(os.path.join(videos_folder, f))])
     
-    print("Fetching playlists...")
-    playlists = get_playlists(channel_url, output_folder, uploader_id)
-    if playlists != []:
-        downloaded_sections.append("playlists")
-        channel_info["channel_sections"].extend(["playlists"])
+    #Playlists
+    try:
+        print("Fetching playlists...")
+        playlists = get_playlists(channel_url, output_folder, uploader_id)
+        if playlists != []:
+            downloaded_sections.append("playlists")
+            channel_info["channel_sections"].extend(["playlists"])
 
-    save_json(playlists, os.path.join(output_folder, f"{uploader_id}_Playlists.json"))
+        save_json(playlists, os.path.join(output_folder, f"{uploader_id}_Playlists.json"))
+    except Exception as e:
+        print(f"Channel doesn't have any playlists or an error occurred: {e}")
     
     
     channel_info['total_views'] = RawAndStyledNumberList(total_views)
@@ -538,11 +540,10 @@ def process_channel(channel_url, include_videos=False, include_shorts=False, inc
                 'subscriber_count': channel_info['subscriber_count'],
                 'total_views': channel_info['total_views'],
                 'channel_videos': str(video_count),
-                'videosjson': f"static/channels/{uploader_id}/{uploader_id}_Videos.json",
-                'playlistjson': f"static/channels/{uploader_id}/{uploader_id}_Playlists.json",
                 'channel_URL': f"{channel_url}",
                 'downloaded_sections': downloaded_sections,
                 'to_download_sections': downloaded_sections,
+                'location': download_location,
                 'last_checked': last_checked_date
             })
             channel_found = True
@@ -558,6 +559,7 @@ def process_channel(channel_url, include_videos=False, include_shorts=False, inc
             'channel_URL': f"{channel_url}",
             'downloaded_sections': downloaded_sections,
             'to_download_sections': downloaded_sections,
+            'location': download_location,
             'last_checked': last_checked_date
         })
 
@@ -569,8 +571,9 @@ def main():
     include_shorts = input("Include Shorts? (True/False): \n").strip().lower() == "true"
     include_streams = input("Include Streams? (True/False): \n").strip().lower() == "true"
     quick_update = input("Quickly update existing archive of a youtube channel? (True/False): \n").strip().lower() == "true"
-    print(f"[main] Inputs -> URL: {channel_url}, Videos: {include_videos}, Shorts: {include_shorts}, Streams: {include_streams}, Quick Update: {quick_update}", flush=True)
-    process_channel(channel_url, include_videos, include_shorts, include_streams, quick_update)
+    location = int(input("Enter Location option: \n"))
+    print(f"[main] Inputs -> Location: {location},  URL: {channel_url}, Videos: {include_videos}, Shorts: {include_shorts}, Streams: {include_streams}, Quick Update: {quick_update}", flush=True)
+    process_channel(channel_url, include_videos, include_shorts, include_streams, quick_update, location)
 
 if __name__ == "__main__":
     main()

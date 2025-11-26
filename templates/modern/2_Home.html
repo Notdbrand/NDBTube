@@ -8,12 +8,12 @@
 		<div class="video-preview">
 			<a href="/{{ video.uploader_id }}/{{ video.video_id }}">
 				<div class="video-preview-top">
-					<img class="video-preview-thumbnail" src="{{ video.thumbnail_location }}">
+					<img class="video-preview-thumbnail" src="/thumbnail/{{ video.uploader_id }}/{{ video.video_id }}">
 					<span class="video-preview-duration">{{ video.duration }}</span>
 				</div>
 			</a>
 			<div class="video-preview-bottom">
-				<a href="/{{ video.uploader_id }}"><img class="video-preview-channel-icon" src="static/channels/{{ video.uploader_id }}/channel.png"></a>
+				<a href="/{{ video.uploader_id }}"><img class="video-preview-channel-icon" src="/icon/{{ video.uploader_id }}"></a>
 				<div class="video-preview-info">
 					<a href="/{{ video.uploader_id }}/{{ video.video_id }}" class="video-preview-title">{{ video.title }}</a>
 					<a href="/{{ video.uploader_id }}" class="video-preview-channel">{{ video.uploader }}</a>
@@ -47,12 +47,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     videoElement.innerHTML = `
                         <a href="/${video.uploader_id}/${video.video_id}">
                             <div class="video-preview-top">
-                                <img class="video-preview-thumbnail" src="${video.thumbnail_location}">
+                                <img class="video-preview-thumbnail" src="/thumbnail/${video.uploader_id}/${video.video_id}">
                                 <span class="video-preview-duration">${video.duration}</span>
                             </div>
                         </a>
                         <div class="video-preview-bottom">
-                            <a href="/${video.uploader_id}"><img class="video-preview-channel-icon" src="static/channels/${video.uploader_id}/channel.png"></a>
+                            <a href="/${video.uploader_id}"><img class="video-preview-channel-icon" src="icon/${video.uploader_id}"></a>
                             <div class="video-preview-info">
                                 <a href="/${video.uploader_id}/${video.video_id}" class="video-preview-title">${video.title}</a>
                                 <a href="/${video.uploader_id}" class="video-preview-channel">${video.uploader}</a>
