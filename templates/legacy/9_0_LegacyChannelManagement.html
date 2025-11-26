@@ -1,0 +1,121 @@
+{% extends "legacy/1_LegacyBase.html" %}
+
+{% block title %}Channel Management{% endblock %}
+
+{% block content %}
+	<style>
+	.settings-page-apply-button.dif {
+		float: right;
+	}
+	</style>
+	<!-- Status keeper. The keeper of status! -->
+	<div class="settings-header">
+		<p>Channel download/update status:</p>
+	</div>
+	<div class="settings-panel">
+		<div id="global-update-status">Idle</div>
+	</div>
+	
+	<!-- Channel Download Interface -->
+	<div class="settings-header">
+		<p>Download Channel:</p>
+	</div>
+	<div class="settings-panel">
+		<p>Enter the url of the Youtube channel you want to archive then select (if available) to download the channels videos, shorts, and streams. Then press download.</p>
+		<form id="download-form" class="channel-url-bar">
+			<input type="url" id="channel-url" name="channel_url" placeholder="Enter YouTube Channel URL" required>
+			<label>
+				<input type="checkbox" id="videos-checkbox" name="include_videos">
+				Videos
+			</label>
+			<label>
+				<input type="checkbox" id="shorts-checkbox" name="include_shorts">
+				Shorts
+			</label>
+			<label>
+				<input type="checkbox" id="streams-checkbox" name="include_streams">
+				Streams
+			</label>
+			<div class="balls main">
+				<label for="storage_location">Storage Location:</label>
+				<select name="storage_location" id="storage_location">
+					{% for location in locations %}
+						<option value="{{ locations.index(location) }}">{{ location }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<button type="submit" class="settings-page-apply-button main">Download</button>
+		</form>
+	</div>
+
+	{% if channels != [] %}
+	<!-- Update Selected and Update All -->
+	<div class="settings-header">
+		<p>Manage Channels:</p>
+	</div>
+	<div class="settings-panel">
+		<table>
+			<tr>
+				<th>Update</th>
+				<th>Channel</th>
+				<th class="last-checked">Last Checked</th>
+				<th>Manage</th>
+			</tr>
+			{% for channel in channels %}
+				<tr>
+					<td><input type="checkbox" class="update-channel-checkbox" data-url="{{ channel.channel_URL }}" data-uploader="{{ channel.uploader_id }}"></td>
+					<td class="manage-channel-name"><a href="/{{ channel.uploader_id }}">{{ channel.uploader }}</a></td>
+					<td class="last-checked">{{ channel.last_checked }}</td>
+					<td class="manage-channel-name"><a href="/ChannelManagement/{{ channel.uploader_id }}">Manage</a></td>
+				</tr>
+			{% endfor %}
+		</table>
+		<br>
+		<form>
+			<div class="balls main">
+				<label for="update_type">Update Type:</label>
+				<select name="update_type" id="update_type" class="input-main">
+					<option value="False">Full Update</option>
+					<option value="True">Quick Update</option>
+				</select>
+			</div>
+			<div class="balls main">
+				<button id="update-selected" class="settings-page-apply-button main">Update Selected</button>
+			</div>
+			<div class="balls main">
+				<button id="update-all" class="settings-page-apply-button main">Update All</button>
+			</div>
+		</form>
+		<p style="font-weight:bold;display:block;margin:5px 0;">Updating Channels:</p>
+		<p>Select the checkboxes for the channels you want updated then press 'Update Selected' or 'Update All' to update all channels. If the videos you want to save are already in the channel's video folder with the video ID as the filename, it won't redownload the video.</p>
+		<p style="font-weight:bold;display:block;margin:5px 0;">Update Type:</p>
+		<p>'Full Update' means that every video from the download sections will be rescanned to aquire the most up to date stats as well as download new videos. 'Quick Update' only downloads new videos are leaves existing video stats.</p>
+	</div>
+	
+	<!-- Delete Channel -->
+	<div class="settings-header">
+		<p>Delete Channel:</p>
+	</div>
+	<div class="settings-panel">
+		<form id="delete-form">
+			<div class="balls main">
+				<label for="channel_delete">Channel to Delete:</label>
+				<select name="channel_delete" id="channel_delete" class="input-main">
+				<option uploader_id="Select a Channel" uploader="Select a Channel">Select a Channel</option>
+					{% for channel in channels %}
+						<option uploader_id="{{ channel.uploader_id }}" uploader="{{ channel.uploader }}">{{ channel.uploader }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="balls main">
+				<label for="confirm">Confirm:</label>
+				<input type="text" id="confirm" name="confirm" placeholder="Enter channel name to confirm." class="input-main">
+			</div>
+			<div class="balls main">
+				<button type="submit" class="settings-page-apply-button main">Delete</button>
+			</div>
+		</form>
+	</div>
+	{% endif %}
+	<script src="/static/JS/Channel_Mangement.js"></script>
+{% endblock %}

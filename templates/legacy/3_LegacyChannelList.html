@@ -17,7 +17,7 @@
 	
 	{% for channel in channels %}
 		<div class="channel-list-box">
-			<img src="/static/channels/{{ channel.uploader_id }}/channel.png" alt="{{ channel.uploader }} icon" class="channel-list-icon">
+			<img src="/icon/{{ channel.uploader_id }}" alt="{{ channel.uploader }} icon" class="channel-list-icon">
 			<div class="channel-list-info">
 				<h3>{{ channel.uploader }}</h3>
 				<p>Subscribers: {{ channel.subscriber_count[1] }}</p>

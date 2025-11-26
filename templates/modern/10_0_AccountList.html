@@ -58,31 +58,6 @@
 			<button type="button" onclick="newAccount()" class="settings-page-apply-button">Create Account</button>
 		</div>
 	</div>
-	<script>
-		function newAccount() {
-			const payload = {
-				username: document.getElementById("user").value,
-				password: document.getElementById("password").value,
-				confirm_password: document.getElementById("confirm").value,
-				access_type: document.getElementById("access_type").value,
-				modern_theme: document.getElementById("modern_theme").value,
-			};
-
-			fetch('/AccountManagement/0/new_account', {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(payload)
-			})
-			.then(async res => {
-				if (res.ok) {
-					alert("Account Created.");
-					location.reload();
-				} else {
-					const data = await res.json();
-					throw new Error(data.message || "Failed to change password.");
-				}
-			})
-			.catch(err => alert("Error: " + err.message));
-		}
-	</script>
+	
+	<script src="/static/JS/Account_Management.js"></script>
 {% endblock %}

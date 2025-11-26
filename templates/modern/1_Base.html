@@ -162,7 +162,7 @@
             <h3>Quick Access:</h3>
             {% for channel in channels %}
                 <a class="channel-item" href="/{{ channel.uploader_id }}">
-                    <img src="/static/channels/{{ channel.uploader_id }}/channel.png" alt="{{ channel.uploader }}" class="channel-icon">
+                    <img src="/icon/{{ channel.uploader_id }}" alt="{{ channel.uploader }}" class="channel-icon">
                     <span>{{ channel.uploader }}</span>
                 </a>
             {% endfor %}

@@ -61,77 +61,10 @@
 			<button type="button" onclick="deleteAccount()" class="settings-page-apply-button">Delete</button>
 		</div>
 	</div>
-	
+
 	<script>
-		function saveRole() {
-			const payload = {
-				username: "{{ user['username'] }}",
-				new_role: document.getElementById("role").value
-			};
-
-			fetch('/AccountManagement/{{ user["id"] }}/role', {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(payload)
-			})
-			.then(async res => {
-				if (res.ok) {
-					location.reload();
-				} else {
-					const data = await res.json();
-					throw new Error(data.message || "Failed to update role.");
-				}
-			})
-			.catch(err => alert("Error: " + err.message));
-		}
-
-		function savePassword() {
-			const payload = {
-				username: "{{ user['username'] }}",
-				current_password: document.getElementById("current").value,
-				new_password: document.getElementById("new").value,
-				confirm_password: document.getElementById("confirm").value
-			};
-
-			fetch('/AccountManagement/{{ user["id"] }}/password', {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(payload)
-			})
-			.then(async res => {
-				if (res.ok) {
-					location.reload();
-				} else {
-					const data = await res.json();
-					throw new Error(data.message || "Failed to change password.");
-				}
-			})
-			.catch(err => alert("Error: " + err.message));
-		}
-		
-		function deleteAccount() {
-			const payload = {
-				username: "{{ user['username'] }}",
-				deletepassword: document.getElementById("deletepassword").value
-			};
-
-			fetch('/AccountManagement/{{ user["id"] }}/deleteaccount', {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(payload)
-			})
-			.then(async res => {
-				if (res.ok) {
-					alert("Account Removed.");
-					window.location.href = '/AccountManagement';
-				} else {
-					const data = await res.json();
-					throw new Error(data.message || "Failed to change password.");
-				}
-			})
-			.catch(err => alert("Error: " + err.message));
-		}
+		const username = "{{ user['username'] }}";
+		const userID = "{{ user['id'] }}";
 	</script>
-
-
+	<script src="/static/JS/Account_Management.js"></script>
 {% endblock %}
