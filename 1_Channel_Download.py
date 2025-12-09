@@ -505,7 +505,10 @@ def process_channel(channel_url, include_videos=False, include_shorts=False, inc
         
     total_views = video_views + shorts_views + streams_views
     videos_folder = os.path.join(output_folder, "videos")
-    video_count = len([f for f in os.listdir(videos_folder) if os.path.isfile(os.path.join(videos_folder, f))])
+    try: 
+        video_count = len([f for f in os.listdir(videos_folder) if os.path.isfile(os.path.join(videos_folder, f))])
+    except:
+        video_count = 0
     
     #Playlists
     try:
@@ -577,3 +580,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
